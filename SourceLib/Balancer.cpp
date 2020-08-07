@@ -539,6 +539,8 @@ void Balancer_Set(BALANCER_DELTA_Q_TYPE* charge_target_ptr)
             }
 
             balancer_max_and_nextstop_update(board_num, Balancer_Active_State[board_num][cell_num]);
+            printf("Cell[%d]\nCommand = %d\tTime = %i\n\n", cell_num + 1, (int)((Balancer_Active_State[board_num][cell_num] & BALANCER_ACTIVE_STATE_COMMAND_MASK) >> 15), \
+                ((int)Balancer_Active_State[board_num][cell_num] & BALANCER_ACTIVE_STATE_TIME_MASK));
         }
 
     }

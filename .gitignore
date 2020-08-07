@@ -2,3 +2,5 @@
 .mbed
 projectfiles
 *.py*
+*.opendb*
+*.sqlite

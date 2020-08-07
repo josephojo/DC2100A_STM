@@ -96,20 +96,20 @@ int main()
             base_discharge_current = BALANCER_CD_CURRENT_DISCHARGE_6CELL;
         }
 
-        for (cell_num = 0; cell_num < DC2100A_NUM_CELLS; cell_num = cell_num+8)    //fill w/ voltages and capacitances for test case
+        for (cell_num = 2; cell_num < 6; cell_num = cell_num+1)    //fill w/ voltages and capacitances for test case
         {
             // Store and scale the charge current
             signed_temp = base_charge_current; 
-            printf("BASE Charge Current[%d] = %d\n", cell_num + 1, base_charge_current);
+            //printf("BASE Charge Current[%d] = %d\n", cell_num + 1, base_charge_current);
             
             signed_temp *= Eeprom_Current_Values[board_num].current[cell_num].charge;
-            printf("BASE x Calibration Charge Current[%d] = %d\n", cell_num + 1, signed_temp);
+            //printf("BASE x Calibration Charge Current[%d] = %d\n", cell_num + 1, signed_temp);
 
             signed_temp = SIGNED_RIGHT_SHIFT_WITH_ROUND(signed_temp, BALANCER_CURRENT_SCALE_FACTOR_SHIFT);
-            printf("SIGNED_RIGHT_SHIFT_WITH_ROUND Charge Current[%d] = %d\n", cell_num + 1, signed_temp);
+            //printf("SIGNED_RIGHT_SHIFT_WITH_ROUND Charge Current[%d] = %d\n", cell_num + 1, signed_temp);
 
             cell[board_num][cell_num].charge_current = base_charge_current + signed_temp;
-            printf("Cell Charge Current[%d] = %d\n\n", cell_num + 1, cell[board_num][cell_num].charge_current);
+            //printf("Cell Charge Current[%d] = %d\n\n", cell_num + 1, cell[board_num][cell_num].charge_current);
 
 
             // Store and scale the discharge current
@@ -118,8 +118,11 @@ int main()
             signed_temp = SIGNED_RIGHT_SHIFT_WITH_ROUND(signed_temp, BALANCER_CURRENT_SCALE_FACTOR_SHIFT);
             cell[board_num][cell_num].discharge_current = base_discharge_current + signed_temp;
 
-            //printf("Cell Charge Current[%d] = %d\n", cell_num + 1, cell[board_num][cell_num].charge_current);
-            //printf("Cell Discharge Current[%d] = %d\n\n", cell_num + 1, cell[board_num][cell_num].discharge_current);
+            printf("Cell Charge Current[%d] = %d\n", cell_num + 1, cell[board_num][cell_num].charge_current);
+            printf("Cell Discharge Current[%d] = %d\n\n", cell_num + 1, cell[board_num][cell_num].discharge_current);
+
+            signed int chargeVals[12] = { 0, 0, 7432, -6000, 4000, 0, 0, 0, 0, 0, 0, 0 };
+            Balancer_Set(chargeVals);
 
             //// Scale to time resolution used by balancer algorithm.
             //charge_target_ptr[cell_num] <<= BALANCER_TIME_RESOLUTION_SHIFT;
