@@ -1,0 +1,2 @@
+BUILD\NUCLEO_F446RE\GCC_ARM\main.o: main.cpp \
+ BUILD\NUCLEO_F446RE\GCC_ARM\mbed_config.h
