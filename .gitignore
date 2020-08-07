@@ -3,4 +3,5 @@
 projectfiles
 *.py*
 *.opendb*
-*.sqlite
+*.sqlite*
+*.db*

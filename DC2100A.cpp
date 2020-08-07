@@ -121,15 +121,14 @@ int main()
             printf("Cell Charge Current[%d] = %d\n", cell_num + 1, cell[board_num][cell_num].charge_current);
             printf("Cell Discharge Current[%d] = %d\n\n", cell_num + 1, cell[board_num][cell_num].discharge_current);
 
-            signed int chargeVals[12] = { 0, 0, 7432, -6000, 4000, 0, 0, 0, 0, 0, 0, 0 };
-            Balancer_Set(chargeVals);
-
             //// Scale to time resolution used by balancer algorithm.
             //charge_target_ptr[cell_num] <<= BALANCER_TIME_RESOLUTION_SHIFT;
 
             //// Start with the primary charge moved equal to the total charge requested to be moved.
             //cell[board_num][cell_num].primary_charge = charge_target_ptr[cell_num];
         }
+        signed int32 chargeVals[12] = { 0, 0, 7432, -6000, 4000, 0, 0, 0, 0, 0, 0, 0 };
+        Balancer_Set(chargeVals);
     }
 
     return 0;
