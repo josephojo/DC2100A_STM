@@ -509,7 +509,7 @@ void Balancer_Set(BALANCER_DELTA_Q_TYPE* charge_target_ptr)
                 signed_temp = cell[board_num][cell_num].primary_charge;
                 signed_temp += (cell[board_num][cell_num].discharge_current >> 1);
                 signed_temp /= cell[board_num][cell_num].discharge_current;
-                Balancer_Active_State[board_num][cell_num] = signed_temp;
+                Balancer_Active_State[board_num][cell_num] = (int16)signed_temp;
                 if(signed_temp != 0 )
                 {
                     Balancer_Active_State[board_num][cell_num] |= BALANCER_ACTIVE_STATE_COMMAND_MASK;  // Set bit to indicate discharging
@@ -529,7 +529,7 @@ void Balancer_Set(BALANCER_DELTA_Q_TYPE* charge_target_ptr)
                 signed_temp = -cell[board_num][cell_num].primary_charge;
                 signed_temp += (cell[board_num][cell_num].charge_current >> 1);
                 signed_temp /= cell[board_num][cell_num].charge_current;
-                Balancer_Active_State[board_num][cell_num] = signed_temp;
+                Balancer_Active_State[board_num][cell_num] = (int16)signed_temp;
                 Balancer_Active_State[board_num][cell_num] &= ~BALANCER_ACTIVE_STATE_COMMAND_MASK;  // Clear bit to indicate charging (or None)
 
                 // Calculate actual charge moved and scale back to mAs for SOC algorithm.
@@ -539,8 +539,11 @@ void Balancer_Set(BALANCER_DELTA_Q_TYPE* charge_target_ptr)
             }
 
             balancer_max_and_nextstop_update(board_num, Balancer_Active_State[board_num][cell_num]);
-            printf("Cell[%d]\nCommand = %d\tTime = %i\n\n", cell_num + 1, (int16)((Balancer_Active_State[board_num][cell_num] & BALANCER_ACTIVE_STATE_COMMAND_MASK) >> 15),
-                ((int16)Balancer_Active_State[board_num][cell_num] & BALANCER_ACTIVE_STATE_TIME_MASK));
+
+            /*int16 bal_timer;
+            bal_timer = Balancer_Active_State[board_num][cell_num] & BALANCER_ACTIVE_STATE_TIME_MASK;
+            printf("Cell[%d]\nCommand = %d\tTime = %d\n\n", cell_num + 1, (int16)((Balancer_Active_State[board_num][cell_num] & BALANCER_ACTIVE_STATE_COMMAND_MASK) >> 15),
+                bal_timer);*/
         }
 
     }

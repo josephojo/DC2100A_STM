@@ -1,7 +1,7 @@
 
 
 //#define __RUNMAIN__
-#define __RUNTEST__
+//#define __RUNTEST__
 
 #ifdef __RUNTEST__
 
@@ -19,6 +19,7 @@
 #include "SourceLib/Voltage.h"
 #include "SourceLib/Temperature.h"
 #include "SourceLib/Balancer.h"
+#include "SourceLib/SOC.h"
 
 
 int main()
@@ -127,8 +128,15 @@ int main()
             //// Start with the primary charge moved equal to the total charge requested to be moved.
             //cell[board_num][cell_num].primary_charge = charge_target_ptr[cell_num];
         }
-        signed int32 chargeVals[12] = { 0, 0, 7432, -6000, 4000, 0, 0, 0, 0, 0, 0, 0 };
-        Balancer_Set(chargeVals);
+        //signed int32 chargeVals[12] = { 0, 0, 7432, -6000, 4000, 0, 0, 0, 0, 0, 0, 0 };
+        //Balancer_Set(chargeVals);
+
+        signed int16 chargeVals[12] = { 0, 0, 7432, -6000, 4000, 0, 0, 0, 0, 0, 0, 0 };
+        for (cell_num = 0; cell_num < DC2100A_NUM_CELLS; cell_num = cell_num + 1)
+        {
+            Current_Commands[DC2100A_NUCLEO_BOARD_NUM][cell_num] = chargeVals[cell_num];
+        }
+        SOC_Balance();
     }
 
     return 0;
