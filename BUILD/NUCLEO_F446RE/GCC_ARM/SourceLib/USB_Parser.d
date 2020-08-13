@@ -201,32 +201,51 @@ BUILD\NUCLEO_F446RE\GCC_ARM\SourceLib\USB_Parser.o: \
  mbed-os/platform/mbed_interface.h mbed-os/platform/mbed_assert.h \
  mbed-os/platform/mbed_debug.h mbed-os/drivers/DigitalIn.h \
  mbed-os/hal/gpio_api.h mbed-os/hal/pinmap.h mbed-os/drivers/DigitalOut.h \
- mbed-os/drivers/AnalogIn.h mbed-os/hal/analogin_api.h \
- mbed-os/drivers/AnalogOut.h mbed-os/hal/analogout_api.h \
- mbed-os/drivers/PwmOut.h mbed-os/hal/pwmout_api.h \
- mbed-os/drivers/Serial.h mbed-os/platform/Stream.h \
- mbed-os/platform/FileLike.h mbed-os/drivers/SerialBase.h \
- mbed-os/hal/serial_api.h mbed-os/hal/buffer.h mbed-os/hal/dma_api.h \
- mbed-os/platform/CThunk.h mbed-os/platform/internal/CThunkBase.h \
- mbed-os/drivers/SPI.h mbed-os/hal/spi_api.h mbed-os/drivers/DigitalOut.h \
- mbed-os/platform/CircularBuffer.h mbed-os/platform/mbed_critical.h \
- mbed-os/platform/Transaction.h mbed-os/drivers/RawSerial.h \
- mbed-os/drivers/Watchdog.h mbed-os/hal/watchdog_api.h \
- mbed-os/drivers/ResetReason.h mbed-os/hal/reset_reason_api.h \
- mbed-os/drivers/Timer.h mbed-os/drivers/Ticker.h \
- mbed-os/platform/cxxsupport/mstd_utility mbed-os/drivers/TimerEvent.h \
- mbed-os/hal/lp_ticker_api.h mbed-os/drivers/Timeout.h \
- mbed-os/drivers/Ticker.h mbed-os/drivers/InterruptIn.h \
- mbed-os/hal/gpio_irq_api.h mbed-os/platform/mbed_wait_api.h \
+ mbed-os/drivers/DigitalInOut.h mbed-os/drivers/BusIn.h \
+ mbed-os/drivers/DigitalIn.h mbed-os/drivers/BusOut.h \
+ mbed-os/drivers/DigitalOut.h mbed-os/drivers/BusInOut.h \
+ mbed-os/drivers/DigitalInOut.h mbed-os/drivers/PortIn.h \
+ mbed-os/hal/port_api.h mbed-os/drivers/PortInOut.h \
+ mbed-os/drivers/PortOut.h mbed-os/drivers/AnalogIn.h \
+ mbed-os/hal/analogin_api.h mbed-os/drivers/AnalogOut.h \
+ mbed-os/hal/analogout_api.h mbed-os/drivers/PwmOut.h \
+ mbed-os/hal/pwmout_api.h mbed-os/drivers/Serial.h \
+ mbed-os/platform/Stream.h mbed-os/platform/FileLike.h \
+ mbed-os/drivers/SerialBase.h mbed-os/hal/serial_api.h \
+ mbed-os/hal/buffer.h mbed-os/hal/dma_api.h mbed-os/platform/CThunk.h \
+ mbed-os/platform/internal/CThunkBase.h mbed-os/drivers/SPI.h \
+ mbed-os/hal/spi_api.h mbed-os/platform/CircularBuffer.h \
+ mbed-os/platform/mbed_critical.h mbed-os/platform/Transaction.h \
+ mbed-os/drivers/SPISlave.h mbed-os/drivers/I2C.h mbed-os/hal/i2c_api.h \
+ mbed-os/drivers/I2CSlave.h mbed-os/drivers/Ethernet.h \
+ mbed-os/drivers/CAN.h mbed-os/hal/can_api.h mbed-os/hal/can_helper.h \
+ mbed-os/drivers/RawSerial.h mbed-os/drivers/UARTSerial.h \
+ mbed-os/drivers/InterruptIn.h mbed-os/hal/gpio_irq_api.h \
+ mbed-os/drivers/FlashIAP.h mbed-os/hal/flash_api.h \
+ mbed-os/drivers/MbedCRC.h mbed-os/drivers/internal/TableCRC.h \
+ mbed-os/hal/crc_api.h mbed-os/drivers/QSPI.h mbed-os/drivers/Watchdog.h \
+ mbed-os/hal/watchdog_api.h mbed-os/drivers/ResetReason.h \
+ mbed-os/hal/reset_reason_api.h mbed-os/drivers/Timer.h \
+ mbed-os/drivers/Ticker.h mbed-os/platform/cxxsupport/mstd_utility \
+ mbed-os/drivers/TimerEvent.h mbed-os/hal/lp_ticker_api.h \
+ mbed-os/drivers/Timeout.h mbed-os/drivers/Ticker.h \
+ mbed-os/drivers/LowPowerTimeout.h mbed-os/drivers/LowPowerTicker.h \
+ mbed-os/drivers/LowPowerTicker.h mbed-os/drivers/LowPowerTimer.h \
+ mbed-os/drivers/Timer.h mbed-os/platform/LocalFileSystem.h \
+ mbed-os/drivers/InterruptIn.h mbed-os/platform/mbed_wait_api.h \
  mbed-os/platform/mbed_thread.h mbed-os/hal/sleep_api.h \
- mbed-os/platform/mbed_power_mgmt.h mbed-os/platform/mbed_rtc_time.h \
- mbed-os/platform/DeepSleepLock.h mbed-os/platform/ScopedRomWriteLock.h \
- mbed-os/platform/mbed_mpu_mgmt.h mbed-os/hal/mpu_api.h \
- mbed-os/platform/ScopedRamExecutionLock.h mbed-os/platform/mbed_stats.h \
- mbed-os/platform/Callback.h mbed-os/platform/FunctionPointer.h \
- mbed-os/platform/ScopedLock.h BufferedSerial/Buffer/MyBuffer.h \
- SourceLib\USB_Parser.h SourceLib\Typedefs.h mbed-os/cmsis/../mbed.h \
- SourceLib\System.h SourceLib\EEPROM.h SourceLib\SOC.h \
- SourceLib\Balancer.h SourceLib\Voltage.h SourceLib\LTC6804-2.h \
- SourceLib\Temperature.h SourceLib\Nucleo_Timer.h SourceLib\LTC3300-1.h \
- SourceLib\Error.h SourceLib\Pack_Current.h
+ mbed-os/platform/mbed_atomic.h mbed-os/platform/mbed_power_mgmt.h \
+ mbed-os/platform/mbed_rtc_time.h mbed-os/platform/mbed_poll.h \
+ mbed-os/platform/ATCmdParser.h mbed-os/platform/FileSystemHandle.h \
+ mbed-os/platform/FileHandle.h mbed-os/platform/DirHandle.h \
+ mbed-os/platform/CriticalSectionLock.h mbed-os/platform/DeepSleepLock.h \
+ mbed-os/platform/ScopedRomWriteLock.h mbed-os/platform/mbed_mpu_mgmt.h \
+ mbed-os/hal/mpu_api.h mbed-os/platform/ScopedRamExecutionLock.h \
+ mbed-os/platform/mbed_stats.h mbed-os/platform/Callback.h \
+ mbed-os/platform/FunctionPointer.h mbed-os/platform/ScopedLock.h \
+ BufferedSerial/Buffer/MyBuffer.h SourceLib\USB_Parser.h \
+ SourceLib\Typedefs.h mbed-os/cmsis/../mbed.h SourceLib\System.h \
+ SourceLib\EEPROM.h SourceLib\SOC.h SourceLib\Balancer.h \
+ SourceLib\Voltage.h SourceLib\LTC6804-2.h SourceLib\Temperature.h \
+ SourceLib\Nucleo_Timer.h SourceLib\LTC3300-1.h SourceLib\Error.h \
+ SourceLib\Pack_Current.h

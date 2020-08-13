@@ -206,27 +206,53 @@ BUILD\NUCLEO_F446RE\GCC_ARM\SourceLib\LTC6804-2.o: \
  mbed-os/cmsis/../platform/mbed_debug.h \
  mbed-os/cmsis/../drivers/DigitalIn.h mbed-os/hal/gpio_api.h \
  mbed-os/hal/pinmap.h mbed-os/cmsis/../drivers/DigitalOut.h \
- mbed-os/cmsis/../drivers/AnalogIn.h mbed-os/hal/analogin_api.h \
- mbed-os/cmsis/../drivers/AnalogOut.h mbed-os/hal/analogout_api.h \
- mbed-os/cmsis/../drivers/PwmOut.h mbed-os/hal/pwmout_api.h \
- mbed-os/cmsis/../drivers/Serial.h mbed-os/platform/Stream.h \
- mbed-os/platform/FileLike.h mbed-os/drivers/SerialBase.h \
- mbed-os/hal/serial_api.h mbed-os/hal/buffer.h mbed-os/hal/dma_api.h \
- mbed-os/platform/CThunk.h mbed-os/platform/internal/CThunkBase.h \
- mbed-os/cmsis/../drivers/SPI.h mbed-os/hal/spi_api.h \
- mbed-os/drivers/DigitalOut.h mbed-os/platform/CircularBuffer.h \
+ mbed-os/cmsis/../drivers/DigitalInOut.h mbed-os/cmsis/../drivers/BusIn.h \
+ mbed-os/drivers/DigitalIn.h mbed-os/cmsis/../drivers/BusOut.h \
+ mbed-os/drivers/DigitalOut.h mbed-os/cmsis/../drivers/BusInOut.h \
+ mbed-os/drivers/DigitalInOut.h mbed-os/cmsis/../drivers/PortIn.h \
+ mbed-os/hal/port_api.h mbed-os/cmsis/../drivers/PortInOut.h \
+ mbed-os/cmsis/../drivers/PortOut.h mbed-os/cmsis/../drivers/AnalogIn.h \
+ mbed-os/hal/analogin_api.h mbed-os/cmsis/../drivers/AnalogOut.h \
+ mbed-os/hal/analogout_api.h mbed-os/cmsis/../drivers/PwmOut.h \
+ mbed-os/hal/pwmout_api.h mbed-os/cmsis/../drivers/Serial.h \
+ mbed-os/platform/Stream.h mbed-os/platform/FileLike.h \
+ mbed-os/drivers/SerialBase.h mbed-os/hal/serial_api.h \
+ mbed-os/hal/buffer.h mbed-os/hal/dma_api.h mbed-os/platform/CThunk.h \
+ mbed-os/platform/internal/CThunkBase.h mbed-os/cmsis/../drivers/SPI.h \
+ mbed-os/hal/spi_api.h mbed-os/platform/CircularBuffer.h \
  mbed-os/platform/mbed_critical.h mbed-os/platform/Transaction.h \
- mbed-os/cmsis/../drivers/RawSerial.h mbed-os/cmsis/../drivers/Watchdog.h \
+ mbed-os/cmsis/../drivers/SPISlave.h mbed-os/cmsis/../drivers/I2C.h \
+ mbed-os/hal/i2c_api.h mbed-os/cmsis/../drivers/I2CSlave.h \
+ mbed-os/cmsis/../drivers/Ethernet.h mbed-os/cmsis/../drivers/CAN.h \
+ mbed-os/hal/can_api.h mbed-os/hal/can_helper.h \
+ mbed-os/cmsis/../drivers/RawSerial.h \
+ mbed-os/cmsis/../drivers/UARTSerial.h mbed-os/drivers/InterruptIn.h \
+ mbed-os/hal/gpio_irq_api.h mbed-os/cmsis/../drivers/FlashIAP.h \
+ mbed-os/hal/flash_api.h mbed-os/cmsis/../drivers/MbedCRC.h \
+ mbed-os/drivers/internal/TableCRC.h mbed-os/hal/crc_api.h \
+ mbed-os/cmsis/../drivers/QSPI.h mbed-os/cmsis/../drivers/Watchdog.h \
  mbed-os/hal/watchdog_api.h mbed-os/cmsis/../drivers/ResetReason.h \
  mbed-os/hal/reset_reason_api.h mbed-os/cmsis/../drivers/Timer.h \
  mbed-os/cmsis/../drivers/Ticker.h \
  mbed-os/platform/cxxsupport/mstd_utility mbed-os/drivers/TimerEvent.h \
  mbed-os/hal/lp_ticker_api.h mbed-os/cmsis/../drivers/Timeout.h \
- mbed-os/drivers/Ticker.h mbed-os/cmsis/../drivers/InterruptIn.h \
- mbed-os/hal/gpio_irq_api.h mbed-os/cmsis/../platform/mbed_wait_api.h \
+ mbed-os/drivers/Ticker.h mbed-os/cmsis/../drivers/LowPowerTimeout.h \
+ mbed-os/drivers/LowPowerTicker.h \
+ mbed-os/cmsis/../drivers/LowPowerTicker.h \
+ mbed-os/cmsis/../drivers/LowPowerTimer.h mbed-os/drivers/Timer.h \
+ mbed-os/cmsis/../platform/LocalFileSystem.h \
+ mbed-os/cmsis/../drivers/InterruptIn.h \
+ mbed-os/cmsis/../platform/mbed_wait_api.h \
  mbed-os/cmsis/../platform/mbed_thread.h mbed-os/cmsis/../hal/sleep_api.h \
+ mbed-os/cmsis/../platform/mbed_atomic.h \
  mbed-os/cmsis/../platform/mbed_power_mgmt.h \
  mbed-os/cmsis/../platform/mbed_rtc_time.h \
+ mbed-os/cmsis/../platform/mbed_poll.h \
+ mbed-os/cmsis/../platform/ATCmdParser.h \
+ mbed-os/cmsis/../platform/FileSystemHandle.h \
+ mbed-os/cmsis/../platform/FileHandle.h \
+ mbed-os/cmsis/../platform/DirHandle.h \
+ mbed-os/cmsis/../platform/CriticalSectionLock.h \
  mbed-os/cmsis/../platform/DeepSleepLock.h \
  mbed-os/cmsis/../platform/ScopedRomWriteLock.h \
  mbed-os/platform/mbed_mpu_mgmt.h mbed-os/hal/mpu_api.h \

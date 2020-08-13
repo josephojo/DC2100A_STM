@@ -18,95 +18,95 @@
             ".bss": 0, 
             ".data": 0, 
             ".bss-delta": 0, 
-            ".text": 812
+            ".text": 834
         }
     }, 
     {
         "module": "DC2100A.o", 
         "size": {
-            ".data-delta": -1, 
-            ".text-delta": -2308, 
-            ".bss": 0, 
-            ".data": 0, 
-            ".bss-delta": -820, 
-            ".text": 308
+            ".data-delta": 0, 
+            ".text-delta": 0, 
+            ".bss": 820, 
+            ".data": 1, 
+            ".bss-delta": 0, 
+            ".text": 2640
         }
     }, 
     {
         "module": "SourceLib\\24AA64.o", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": -130, 
+            ".text-delta": 0, 
             ".bss": 0, 
             ".data": 0, 
             ".bss-delta": 0, 
-            ".text": 76
+            ".text": 202
         }
     }, 
     {
         "module": "SourceLib\\Balancer.o", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": -1988, 
-            ".bss": 0, 
+            ".text-delta": 0, 
+            ".bss": 431, 
             ".data": 0, 
-            ".bss-delta": -431, 
-            ".text": 0
+            ".bss-delta": 0, 
+            ".text": 2036
         }
     }, 
     {
         "module": "SourceLib\\Eeprom.o", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": -498, 
-            ".bss": 388, 
+            ".text-delta": 0, 
+            ".bss": 396, 
             ".data": 0, 
-            ".bss-delta": -8, 
-            ".text": 580
+            ".bss-delta": 0, 
+            ".text": 1062
         }
     }, 
     {
         "module": "SourceLib\\Error.o", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": -254, 
+            ".text-delta": 0, 
             ".bss": 28, 
             ".data": 0, 
             ".bss-delta": 0, 
-            ".text": 100
+            ".text": 354
         }
     }, 
     {
         "module": "SourceLib\\LTC1380.o", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": -118, 
+            ".text-delta": 0, 
             ".bss": 0, 
             ".data": 0, 
             ".bss-delta": 0, 
-            ".text": 0
+            ".text": 118
         }
     }, 
     {
         "module": "SourceLib\\LTC3300-1.o", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": -738, 
+            ".text-delta": 0, 
             ".bss": 0, 
             ".data": 0, 
             ".bss-delta": 0, 
-            ".text": 0
+            ".text": 734
         }
     }, 
     {
         "module": "SourceLib\\LTC6804-2.o", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": -1790, 
+            ".text-delta": 0, 
             ".bss": 34, 
             ".data": 0, 
             ".bss-delta": 0, 
-            ".text": 2012
+            ".text": 3706
         }
     }, 
     {
@@ -117,106 +117,106 @@
             ".bss": 117, 
             ".data": 0, 
             ".bss-delta": 0, 
-            ".text": 208
+            ".text": 212
         }
     }, 
     {
         "module": "SourceLib\\NUCLEO_Timer.o", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": -48, 
+            ".text-delta": 0, 
             ".bss": 76, 
             ".data": 0, 
             ".bss-delta": 0, 
-            ".text": 184
+            ".text": 236
         }
     }, 
     {
         "module": "SourceLib\\Pack_Current.o", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": -100, 
-            ".bss": 80, 
+            ".text-delta": 0, 
+            ".bss": 92, 
             ".data": 0, 
-            ".bss-delta": -12, 
-            ".text": 56
+            ".bss-delta": 0, 
+            ".text": 160
         }
     }, 
     {
         "module": "SourceLib\\SOC.o", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": -232, 
+            ".text-delta": 4, 
             ".bss": 0, 
             ".data": 0, 
             ".bss-delta": 0, 
-            ".text": 0
+            ".text": 220
         }
     }, 
     {
         "module": "SourceLib\\System.o", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": -88, 
+            ".text-delta": 0, 
             ".bss": 56, 
             ".data": 0, 
             ".bss-delta": 0, 
-            ".text": 684
+            ".text": 796
         }
     }, 
     {
         "module": "SourceLib\\Temperature.o", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": -468, 
-            ".bss": 1, 
+            ".text-delta": 0, 
+            ".bss": 129, 
             ".data": 0, 
-            ".bss-delta": -128, 
-            ".text": 84
+            ".bss-delta": 0, 
+            ".text": 548
         }
     }, 
     {
         "module": "SourceLib\\USB_Parser.o", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": -3104, 
-            ".bss": 296, 
+            ".text-delta": 0, 
+            ".bss": 597, 
             ".data": 0, 
-            ".bss-delta": -301, 
-            ".text": 76
+            ".bss-delta": 0, 
+            ".text": 3126
         }
     }, 
     {
         "module": "SourceLib\\Voltage.o", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": -516, 
-            ".bss": 20, 
+            ".text-delta": 0, 
+            ".bss": 265, 
             ".data": 0, 
-            ".bss-delta": -245, 
-            ".text": 144
+            ".bss-delta": 0, 
+            ".text": 676
         }
     }, 
     {
         "module": "[fill]", 
         "size": {
-            ".data-delta": 1, 
-            ".text-delta": -88, 
-            ".bss": 36, 
-            ".data": 8, 
-            ".bss-delta": -19, 
-            ".text": 86
+            ".data-delta": 0, 
+            ".text-delta": -4, 
+            ".bss": 55, 
+            ".data": 7, 
+            ".bss-delta": 0, 
+            ".text": 90
         }
     }, 
     {
         "module": "[lib]\\c.a", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": 212, 
+            ".text-delta": 0, 
             ".bss": 89, 
             ".data": 2472, 
             ".bss-delta": 0, 
-            ".text": 28688
+            ".text": 24488
         }
     }, 
     {
@@ -227,7 +227,7 @@
             ".bss": 0, 
             ".data": 0, 
             ".bss-delta": 0, 
-            ".text": 3104
+            ".text": 3196
         }
     }, 
     {
@@ -238,51 +238,51 @@
             ".bss": 28, 
             ".data": 4, 
             ".bss-delta": 0, 
-            ".text": 180
+            ".text": 224
         }
     }, 
     {
         "module": "mbed-os\\components", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": -34, 
+            ".text-delta": 0, 
             ".bss": 0, 
             ".data": 0, 
             ".bss-delta": 0, 
-            ".text": 36
+            ".text": 98
         }
     }, 
     {
         "module": "mbed-os\\drivers", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": -416, 
+            ".text-delta": 0, 
             ".bss": 1228, 
             ".data": 0, 
             ".bss-delta": 0, 
-            ".text": 2340
+            ".text": 2744
         }
     }, 
     {
         "module": "mbed-os\\events", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": -1494, 
-            ".bss": 0, 
+            ".text-delta": 0, 
+            ".bss": 3108, 
             ".data": 0, 
-            ".bss-delta": -3108, 
-            ".text": 0
+            ".bss-delta": 0, 
+            ".text": 1512
         }
     }, 
     {
         "module": "mbed-os\\hal", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": -44, 
+            ".text-delta": 0, 
             ".bss": 66, 
             ".data": 4, 
             ".bss-delta": 0, 
-            ".text": 1490
+            ".text": 1466
         }
     }, 
     {
@@ -293,37 +293,37 @@
             ".bss": 224, 
             ".data": 260, 
             ".bss-delta": 0, 
-            ".text": 3198
+            ".text": 3130
         }
     }, 
     {
         "module": "mbed-os\\rtos", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": -3824, 
-            ".bss": 5973, 
+            ".text-delta": 0, 
+            ".bss": 5981, 
             ".data": 168, 
-            ".bss-delta": -8, 
-            ".text": 6560
+            ".bss-delta": 0, 
+            ".text": 10470
         }
     }, 
     {
         "module": "mbed-os\\targets", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": -940, 
-            ".bss": 580, 
+            ".text-delta": 0, 
+            ".bss": 1116, 
             ".data": 4, 
-            ".bss-delta": -536, 
-            ".text": 11092
+            ".bss-delta": 0, 
+            ".text": 12152
         }
     }, 
     {
         "summary": {
-            "static_ram": 12240, 
-            "total_flash_delta": -19008, 
-            "static_ram_delta": -5616, 
-            "total_flash": 65104
+            "static_ram": 17856, 
+            "total_flash_delta": 0, 
+            "static_ram_delta": 0, 
+            "total_flash": 80236
         }
     }
 ]
