@@ -25,11 +25,11 @@
         "module": "DC2100A.o", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": 0, 
+            ".text-delta": -24, 
             ".bss": 820, 
             ".data": 1, 
             ".bss-delta": 0, 
-            ".text": 2640
+            ".text": 2616
         }
     }, 
     {
@@ -47,11 +47,11 @@
         "module": "SourceLib\\Balancer.o", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": 0, 
+            ".text-delta": -44, 
             ".bss": 431, 
             ".data": 0, 
             ".bss-delta": 0, 
-            ".text": 2036
+            ".text": 1992
         }
     }, 
     {
@@ -201,44 +201,44 @@
         "module": "[fill]", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": 0, 
+            ".text-delta": 28, 
             ".bss": 55, 
             ".data": 7, 
             ".bss-delta": 0, 
-            ".text": 90
+            ".text": 118
         }
     }, 
     {
         "module": "[lib]\\c.a", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": 0, 
+            ".text-delta": 3988, 
             ".bss": 89, 
             ".data": 2472, 
             ".bss-delta": 0, 
-            ".text": 24488
+            ".text": 28476
         }
     }, 
     {
         "module": "[lib]\\gcc.a", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": 0, 
+            ".text-delta": -16, 
             ".bss": 0, 
             ".data": 0, 
             ".bss-delta": 0, 
-            ".text": 3196
+            ".text": 3180
         }
     }, 
     {
         "module": "[lib]\\misc", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": 0, 
+            ".text-delta": -44, 
             ".bss": 28, 
             ".data": 4, 
             ".bss-delta": 0, 
-            ".text": 224
+            ".text": 180
         }
     }, 
     {
@@ -321,9 +321,9 @@
     {
         "summary": {
             "static_ram": 17856, 
-            "total_flash_delta": 0, 
+            "total_flash_delta": 3888, 
             "static_ram_delta": 0, 
-            "total_flash": 80236
+            "total_flash": 84124
         }
     }
 ]

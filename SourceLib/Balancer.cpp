@@ -239,7 +239,7 @@ void Balancer_Control_Task(void)
             // Move to suspend so that the state reflects if we are actually balancing.
             if(Balancer_Active_Time_Max == 0)
             {
-                balancer_control_state = BALANCER_CONTROL_OFF;
+                balancer_control_state = BALANCER_CONTROL_GUI; // BALANCER_CONTROL_OFF; #Changed
             }
             else
             {
