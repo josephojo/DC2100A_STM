@@ -274,7 +274,7 @@ int main()
 
     // events are simple callbacks, call every specified amount of milliseconds
     mainQueue.call_every(BALANCER_TASK_RATE,        Task_Balancer);
-    mainQueue.call_every(VOLTAGE_TASK_RATE,         Task_Voltage);
+    mainQueue.call_every(VOLTAGE_TASK_RATE,         Task_Voltage); // Used to me 100ms now 200ms
     //mainQueue.call_every(PACK_CURRENT_TASK_RATE,    Task_Pack_Current);
     mainQueue.call_every(TEMPERATURE_TASK_RATE,     Task_Temperature);
     mainQueue.call_every(USB_TASK_RATE,             Task_Parser);

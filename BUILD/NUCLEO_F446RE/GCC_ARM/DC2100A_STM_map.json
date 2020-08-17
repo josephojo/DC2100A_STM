@@ -146,7 +146,7 @@
         "module": "SourceLib\\SOC.o", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": 4, 
+            ".text-delta": 0, 
             ".bss": 0, 
             ".data": 0, 
             ".bss-delta": 0, 
@@ -201,7 +201,7 @@
         "module": "[fill]", 
         "size": {
             ".data-delta": 0, 
-            ".text-delta": -4, 
+            ".text-delta": 0, 
             ".bss": 55, 
             ".data": 7, 
             ".bss-delta": 0, 
