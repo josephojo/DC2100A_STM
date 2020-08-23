@@ -5,5 +5,5 @@ projectfiles
 *.opendb*
 *.sqlite
 *.db*
-.vs\
-Build\
+.vs/
+Build/
