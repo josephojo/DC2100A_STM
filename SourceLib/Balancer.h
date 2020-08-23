@@ -62,8 +62,11 @@
 //! @name Balancer Control Module Constants
 //! @{
 //#define BALANCER_TASK_RATE                  62.5  //!< in ms, the rate at which the balancer control task is executed. #Changed - Reducing Balancer Rate to 62.5ms // Can't define floating point numbers
-constexpr auto BALANCER_TASK_RATE = 62.5;  //!< in ms, the rate at which the balancer control task is executed. #Changed - Reducing Balancer Rate to 62.5ms;
+constexpr auto BALANCER_TASK_RATE = 62.5;       //!< in ms, the rate at which the balancer control task is executed. #Changed - Reducing Balancer Rate to 62.5ms;
 //! @}
+
+#define MPC_STIME 4000                          //!< in ms, the rate at which the high level sends balance charge commands to the balancer
+#define PWM_ON_PERIOD 1                         //!< in multiples of BALANCER_TASK_RATE. How many task rates should the balancer be active/ON (timed) when in PWM Mode
 
 //! @name Balancer Control States
 //! @{
@@ -73,6 +76,7 @@ typedef enum
     BALANCER_CONTROL_OFF,                       //!< Balancing is not active. ICs are allowed to go to sleep.
     BALANCER_CONTROL_GUI,                       //!< Watchdog is being activated to prevent LTC3300s from going to sleep, but raw commands are being sent to ICs from the GUI.
     BALANCER_CONTROL_SETUP,                     //!< Balancing commands are being loaded. ICs are prevented from going to sleep.
+    BALANCER_CONTROL_PWM_PAUSE,                 //!< Balancing commands are halted in the frequently to simulate a pwm signal and to prevent voltage spike. ICs are prevented from going to sleep.
     BALANCER_CONTROL_ON,                        //!< Balancing commands are being executed for a timed value for each cell. ICs are prevented from going to sleep.  State automatically transitions to OFF when balancing is complete.
     BALANCER_CONTROL_SUSPEND                    //!< Balancing commands are suspended.  ICs are prevented from going to sleep.
 } BALANCER_CONTROL_STATE_TYPE;
@@ -138,6 +142,7 @@ extern BALANCER_ACTIVE_STATE_TYPE Balancer_Active_Time_Max;                     
 extern BALANCER_ACTIVE_STATE_TYPE Balancer_Active_Time_Next_Stop;                               //!< The shortest, yet non-zero, active balance time in the DC2100A system.
 extern int8 Balancer_Active_Board_Max;                                                          //!< The board with the longest remaining balance time
 extern int8 Balancer_Active_Board_Next_Stop;                                                    //!< The cell with the shortest, yet non-zero, remaining balance time
+//extern bool Balancer_USE_PWM[DC2100A_MAX_BOARDS][DC2100A_NUM_CELLS];                            //!< The method to use for controlling balancing. When true, balancing for each cell is paused periodically to emulate pwm
 //! @}
 
 //! @name Passive Cell Balancer States
@@ -170,6 +175,15 @@ BOOLEAN Balancer_Wakeup_Init(void);
 //! - Turns on/off the passive balancers.
 //! @return void
 void Balancer_Control_Task(void);
+
+//! Executes the Balancer Control task, but uses the PWM Feature.
+//! - Sends watchdog commands to the LTC3300-1 ICs to keep them awake, unless in a state which allows the LTC3300-1 ICs to sleep.
+//! - If in the BALANCER_CONTROL_ON state, each active cell balancer command has its timer decremented while sending the appropriate commands
+//!   to the LTC3300-1 ICs.  The max and min (yet non-zero) balance times are tracked in this state.
+//! - Turns on/off the passive balancers.
+//! - Pauses Balancing after every 2 task runs / sample times, emulating a pwm signal. The feature is coined as Variable Pulse Length Modulation (VPLM)
+//! @return void
+void Balancer_Control_Task_PWM(void);
 
 //! Places Balancer Control Task in the BALANCER_CONTROL_SETUP state.
 //! Does not change the active cell balancer states.

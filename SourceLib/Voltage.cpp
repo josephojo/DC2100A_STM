@@ -230,7 +230,7 @@ void Voltage_Monitor_Task(void)
                         // but requires more knowledge of how the cells are connected.
                         if(suspend_sent == FALSE)
                         {
-                            Balancer_Suspend(); // // #ComeBack - Temporarily commenting this out due to no include balancer.h
+                            Balancer_Suspend(); 
                             suspend_sent = TRUE;
                         }
                     }

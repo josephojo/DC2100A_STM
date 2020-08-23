@@ -98,13 +98,14 @@ constexpr void checkBalTimeResolution(void)
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 BALANCER_ACTIVE_STATE_TYPE Balancer_Active_State[DC2100A_MAX_BOARDS][DC2100A_NUM_CELLS]; // The state of each active cell balancer on each DC2100A in the system.
+//bool Balancer_USE_PWM[DC2100A_MAX_BOARDS][DC2100A_NUM_CELLS];                            // The method to use for controlling balancing. When true, balancing for each cell is paused periodically to emulate pwm
 BALANCER_ACTIVE_STATE_TYPE Balancer_Active_Time_Max;                                     // The longest active balance time in the DC2100A system.
 BALANCER_ACTIVE_STATE_TYPE Balancer_Active_Time_Next_Stop;                               // The shortest, yet non-zero, active balance time in the DC2100A system.
 int8 Balancer_Active_Board_Max;                                                          // The board with the longest remaining balance time
 int8 Balancer_Active_Board_Next_Stop;                                                    // The cell with the shortest, yet non-zero, remaining balance time
 BALANCER_PASSIVE_STATE_TYPE Balancer_Passive_State[DC2100A_MAX_BOARDS];                  // Bitmap for LTC6804_NUM_CELLV_ADC passive balancers on one DC2100A, 1 = ON and 0 = Off, bit 0 = cell 0
 
-signed int32 unapplied_charge[DC2100A_MAX_BOARDS][DC2100A_NUM_CELLS];
+//signed int32 unapplied_charge[DC2100A_MAX_BOARDS][DC2100A_NUM_CELLS];
 signed int16 Current_Commands[DC2100A_MAX_BOARDS][DC2100A_NUM_CELLS];
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -311,6 +312,157 @@ void Balancer_Control_Task(void)
     return;
 
 }
+
+// Executes the Balancer Control task.
+// - Sends watchdog commands to the LTC3300-1 ICs to keep them awake, unless in a state which allows the LTC3300-1 ICs to sleep.
+// - If in the BALANCER_CONTROL_ON state, each active cell balancer command has its timer decremented while sending the appropriate commands
+//   to the LTC3300-1 ICs.  The max and min (yet non-zero) balance times are tracked in this state.
+// - Turns on/off the passive balancers.
+// - Monitors the state of the balancers.
+void Balancer_Control_Task_PWM(void)
+{
+    int16 board_num;
+    int16 cell_num;
+    int16 bal_timer;
+
+    // Update the watchdog counter.  The reset will be handled depending upon the case.
+    if (balancer_watchdog_counter != 0)
+    {
+        balancer_watchdog_counter--;
+    }
+
+    switch (balancer_control_state)
+    {
+    default:
+    case BALANCER_CONTROL_OFF:
+        // Not balancing, do not send commands to allow LTC3300 to turn off.
+        balancer_watchdog_counter = LTC3300_TWD1 / BALANCER_TASK_RATE;
+        break;
+
+    case BALANCER_CONTROL_GUI:
+        // Kick WDT but nothing else, to allow GUI directly talk to the LTC3300s
+        if (balancer_watchdog_counter == 0)
+        {
+            LTC3300_Watchdog_Kick();
+            balancer_watchdog_counter = LTC3300_TWD1 / BALANCER_TASK_RATE;
+        }
+        break;
+
+    case BALANCER_CONTROL_SETUP:
+        // Kick WDT.
+        if (balancer_watchdog_counter == 0)
+        {
+            LTC3300_Suspend(LTC6804_BROADCAST);
+            balancer_watchdog_counter = LTC3300_TWD1 / BALANCER_TASK_RATE;
+        }
+
+        for (board_num = 0; board_num < System_Num_Boards; board_num++)
+        {
+            // Update the balancer commands in the LTC3300s
+            balancer_command_update(board_num);
+        }
+        break;
+
+    case BALANCER_CONTROL_PWM_PAUSE:
+        LTC3300_Suspend(LTC6804_BROADCAST);
+        balancer_control_state = BALANCER_CONTROL_ON;
+
+        break;
+
+    case BALANCER_CONTROL_ON:
+        // Send commands to the LTC3300.  Update first, in case the BALANCER_CONTROL_SETUP state was skipped.
+        // Worst case we need enough communication time for when all of the cells change balance state at once.
+        // A simple way to ensure this is to update all of the cells all of the time.
+        for (board_num = 0; board_num < System_Num_Boards; board_num++)
+        {
+            balancer_command_update(board_num);
+        }
+
+        // Execute the loaded command.  Note that loaded commands don't change the balancer output until a subsequent Execute command is received.
+        LTC3300_Execute(LTC6804_BROADCAST);
+
+        // The next time that this task is run, all of the times will be zero.
+        // Move to suspend so that the state reflects if we are actually balancing.
+        if (Balancer_Active_Time_Max == 0)
+        {
+            balancer_control_state = BALANCER_CONTROL_GUI; // BALANCER_CONTROL_OFF; #Changed
+        }
+        else
+        {
+            // decrement the max and next stop timers.
+            Balancer_Active_Time_Max--;
+            if (Balancer_Active_Time_Next_Stop != 0)
+            {
+                Balancer_Active_Time_Next_Stop--;
+            }
+
+            // Count down the balancing time for each board, and update the balance commands.
+            // Note that the balancers are actually turned off next time task is run.
+            for (board_num = 0; board_num < System_Num_Boards; board_num++)
+            {
+                // decrement the count for all cells.
+                for (cell_num = 0; cell_num < DC2100A_NUM_CELLS; cell_num++)
+                {
+
+                    bal_timer = (Balancer_Active_State[board_num][cell_num] & BALANCER_ACTIVE_STATE_TIME_MASK);
+                    if (bal_timer == 0)
+                    {
+                        Balancer_Active_State[board_num][cell_num] &= ~BALANCER_ACTIVE_STATE_COMMAND_MASK;
+                    }
+                    else
+                    {
+						// If timer not expired, decrement it
+						Balancer_Active_State[board_num][cell_num] -= (1L << BALANCER_ACTIVE_STATE_TIME_SHIFT);
+
+						// Look for a new next stop.  Note that the maximum does not need to constantly be updated, as the board with the
+						// maximum balance time will remain the max until the end of balancing.
+						balancer_nextstop_update(board_num, bal_timer - 1);
+                    }
+                }
+            }
+            // For the VPLM/PWM feature: If max balancer time has been ON for the max PWM period, make sure the next control state is a rest/pause
+            if (Balancer_Active_Time_Max % PWM_ON_PERIOD == 0) 
+            {
+                balancer_control_state = BALANCER_CONTROL_PWM_PAUSE;
+            }
+        }
+        break;
+
+    case BALANCER_CONTROL_SUSPEND:
+        // Kick WDT.
+        if (balancer_watchdog_counter == 0)
+        {
+            LTC3300_Suspend(LTC6804_BROADCAST);
+            balancer_watchdog_counter = LTC3300_TWD1 / BALANCER_TASK_RATE;
+        }
+        break;
+    }
+
+    // Update status bits
+    if (balancer_control_state == BALANCER_CONTROL_OFF)
+    {
+        // If LTC3300 are being allowed to turn off, then their gate drives can not be on.
+        memset(balancer_gate_drive_ok, 0, sizeof(balancer_gate_drive_ok));
+    }
+    else
+    {
+        // In all other states, update the status bits.
+        for (board_num = 0; board_num < System_Num_Boards; board_num++)
+        {
+            balancer_status_update(board_num);
+        }
+    }
+
+    // Manage passive balancers
+    for (board_num = 0; board_num < System_Num_Boards; board_num++)
+    {
+        LTC6804_Dischargers_Set(board_num, Balancer_Passive_State[board_num], 0);
+    }
+
+    return;
+
+}
+
 
 // Places Balancer Control Task in the BALANCER_CONTROL_SETUP state.
 // Does not change the active cell balancer states.
