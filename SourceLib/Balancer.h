@@ -62,11 +62,12 @@
 //! @name Balancer Control Module Constants
 //! @{
 //#define BALANCER_TASK_RATE                  62.5  //!< in ms, the rate at which the balancer control task is executed. #Changed - Reducing Balancer Rate to 62.5ms // Can't define floating point numbers
-constexpr auto BALANCER_TASK_RATE = 62.5;       //!< in ms, the rate at which the balancer control task is executed. #Changed - Reducing Balancer Rate to 62.5ms;
+constexpr auto BALANCER_TASK_RATE = 3.90625;       //!< in ms, the rate at which the balancer control task is executed. #Changed - Reducing Balancer Rate to 62.5ms;
 //! @}
 
 #define MPC_STIME 4000                          //!< in ms, the rate at which the high level sends balance charge commands to the balancer
-#define PWM_ON_PERIOD 1                         //!< in multiples of BALANCER_TASK_RATE. How many task rates should the balancer be active/ON (timed) when in PWM Mode
+#define PWM_ON_PERIOD 1                         //!< in multiples of BALANCER_TASK_RATE. How many task rates should the balancer be active/ON (timed mode) when in PWM Mode
+#define PWM_OFF_PERIOD 1                         //!< in multiples of BALANCER_TASK_RATE. How many task rates should the balancer be inactive/OFF (timed mode) when in PWM Mode
 
 //! @name Balancer Control States
 //! @{

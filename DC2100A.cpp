@@ -138,7 +138,8 @@ int main()
         //signed int32 chargeVals[12] = { 0, 0, 7432, -6000, 4000, 0, 0, 0, 0, 0, 0, 0 };
         //Balancer_Set(chargeVals);
 
-        signed int16 chargeVals[12] = { 0, 0, 7432, -6000, 4000, 0, 0, 0, 0, 0, 0, 0 };
+        //signed int16 chargeVals[12] = { 0, 0, 7432, -6000, 4000, 0, 0, 0, 0, 0, 0, 0 };
+        signed int16 chargeVals[12] = { 0, 0, 0, 0, 6000, 0, 0, 0, 0, 0, 0, 0 };
         for (cell_num = 0; cell_num < DC2100A_NUM_CELLS; cell_num = cell_num + 1)
         {
             Current_Commands[DC2100A_NUCLEO_BOARD_NUM][cell_num] = chargeVals[cell_num];

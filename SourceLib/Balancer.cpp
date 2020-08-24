@@ -73,10 +73,10 @@
 #define BALANCER_ALGORITHM_NUM_BOARDS       1       // Note - the Balancer_Set(BALANCER_DELTA_Q_TYPE* charge_target_ptr) function is limited to this many boards.
 #define BALANCER_ALGORITHM_PASSES           1      // The number of iterations algorithm performs to determine optimal active balance states to achieve desired delta Q.
 
-#define BALANCER_TIME_RESOLUTION_SHIFT      4 //2       // Division  #Changed - Reducing Balancer Rate to 62.5ms
-#define BALANCER_TIME_RESOLUTION            (1L << BALANCER_TIME_RESOLUTION_SHIFT) // resolution = 4 samples
+#define BALANCER_TIME_RESOLUTION_SHIFT      8 //2       // Division  #Changed - Reducing Balancer Rate to 3.90625ms
+#define BALANCER_TIME_RESOLUTION            (1L << BALANCER_TIME_RESOLUTION_SHIFT) // resolution = 256 samples
 
-//#if BALANCER_TIME_RESOLUTION != (MS_PER_S/BALANCER_TASK_RATE)  // Cannot divide by floating point numbers. See them as zero for some reason.
+//#if BALANCER_TIME_RESOLUTION != (MS_PER_S/BALANCER_TASK_RATE)  // Cannot divide by floating point numbers. Sees them as zero for some reason.
 //#error The balancer task must be called at the frequency necessary to provide the desired resolution in balance time.
 //#endif
 
@@ -86,8 +86,8 @@ constexpr void checkBalTimeResolution(void)
 }
 
 
-#define BALANCER_CHARGE_EFFICIENCY                  77 //92      // in %, efficiency of balancer when charging a cell #Changed - Changed Efficiency to match what was physically measured
-#define BALANCER_DISCHARGE_EFFICIENCY               65 //92      // in %, efficiency of balancer when discharging a cell  #Changed - Changed Efficiency to match what was physically measured
+#define BALANCER_CHARGE_EFFICIENCY                  92 //77 //92      // in %, efficiency of balancer when charging a cell #Changed - Changed Efficiency to match what was physically measured
+#define BALANCER_DISCHARGE_EFFICIENCY               92 //65 //92      // in %, efficiency of balancer when discharging a cell  #Changed - Changed Efficiency to match what was physically measured
 #define BALANCER_CELL_CHARGE_ERROR_DAMPING_SHIFT    1       // Damping factor for cell charge error feedback term in iterative calaculation
 #define BALANCER_CELL_CHARGE_ERROR_DAMPING          (1L << BALANCER_CELL_CHARGE_ERROR_DAMPING_SHIFT)
 #define BALANCER_HALF_STACK_EEROR_DAMPING_SHIFT     1
@@ -364,12 +364,19 @@ void Balancer_Control_Task_PWM(void)
         break;
 
     case BALANCER_CONTROL_PWM_PAUSE:
-        if (pwmOffFlag == 0)
+        pwmOffFlag += 1;
+
+        if ((pwmOffFlag == 1) && (pwmOffFlag == PWM_OFF_PERIOD))
         {
             LTC3300_Suspend(LTC6804_BROADCAST);
-            pwmOffFlag += 1;
+            balancer_control_state = BALANCER_CONTROL_ON;
+            pwmOffFlag = 0;
         }
         else if (pwmOffFlag == 1)
+        {
+            LTC3300_Suspend(LTC6804_BROADCAST);
+        }
+        else if (pwmOffFlag == PWM_OFF_PERIOD)
         {
             balancer_control_state = BALANCER_CONTROL_ON;
             pwmOffFlag = 0;
