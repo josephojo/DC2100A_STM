@@ -71,7 +71,7 @@
 // Constants for configuration of Balancer_Set(BALANCER_DELTA_Q_TYPE* charge_target_ptr) function
 // See DC2100A_Balance_Algorithm_Design.xlsm, available upon request from LTC, for a model of this function, and the meaning of these constants.
 #define BALANCER_ALGORITHM_NUM_BOARDS       1       // Note - the Balancer_Set(BALANCER_DELTA_Q_TYPE* charge_target_ptr) function is limited to this many boards.
-#define BALANCER_ALGORITHM_PASSES           10      // The number of iterations algorithm performs to determine optimal active balance states to achieve desired delta Q.
+#define BALANCER_ALGORITHM_PASSES           1      // The number of iterations algorithm performs to determine optimal active balance states to achieve desired delta Q.
 
 #define BALANCER_TIME_RESOLUTION_SHIFT      4 //2       // Division  #Changed - Reducing Balancer Rate to 62.5ms
 #define BALANCER_TIME_RESOLUTION            (1L << BALANCER_TIME_RESOLUTION_SHIFT) // resolution = 4 samples
@@ -107,7 +107,7 @@ BALANCER_PASSIVE_STATE_TYPE Balancer_Passive_State[DC2100A_MAX_BOARDS];         
 
 //signed int32 unapplied_charge[DC2100A_MAX_BOARDS][DC2100A_NUM_CELLS];
 signed int16 Current_Commands[DC2100A_MAX_BOARDS][DC2100A_NUM_CELLS];
-
+unsigned int16 pwmOffFlag = 0;
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Local Data
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -364,9 +364,16 @@ void Balancer_Control_Task_PWM(void)
         break;
 
     case BALANCER_CONTROL_PWM_PAUSE:
-        LTC3300_Suspend(LTC6804_BROADCAST);
-        balancer_control_state = BALANCER_CONTROL_ON;
-
+        if (pwmOffFlag == 0)
+        {
+            LTC3300_Suspend(LTC6804_BROADCAST);
+            pwmOffFlag += 1;
+        }
+        else if (pwmOffFlag == 1)
+        {
+            balancer_control_state = BALANCER_CONTROL_ON;
+            pwmOffFlag = 0;
+        }
         break;
 
     case BALANCER_CONTROL_ON:

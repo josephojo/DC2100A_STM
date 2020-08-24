@@ -131,9 +131,15 @@ void SOC_Balance(void)
         {
             target_charge[cell_num] =  Current_Commands[DC2100A_NUCLEO_BOARD_NUM][cell_num];
         }
+
+
         Balancer_Set(target_charge);
         Balancer_Start();
 
+
+
+
+  //      // Alternative for Balancer_Set(target_charge)
   //      int16 board_num;
   //      int16 cell_num;
 

@@ -1,6 +1,5 @@
 
 
-//#define __RUNMAIN__
 //#define __RUNTEST__
 
 #ifdef __RUNTEST__
@@ -21,20 +20,28 @@
 #include "SourceLib/Balancer.h"
 #include "SourceLib/SOC.h"
 
+Serial serial2(USBTX, USBRX);
+
 
 int main()
 {
     //unsigned int8 rxCmd[4]; // Revision Group Cmd
 
+    Timer tSpan;
+    tSpan.start();
+
     //unsigned int8 rxData[64];
     int16 board_num = 0;
 
-    NUCLEO_SPI_Init(1000, MODE3);
+    NUCLEO_SPI_Init(1000, MODE3); // 1000 here means baudrate of 1000 kHz
     NUCLEO_Timer_Init();
     LTC6804_Init();
 
     Eeprom_Init();
     System_Init();
+
+    serial2.baud(115200); // BufferedSerial BaudRate
+
 
     // Run these twice to move the system state from init to awake and set the OV and UV thresholds
     System_Status_Task();
@@ -44,18 +51,18 @@ int main()
     int cell_num = 0;
 
     //Eeprom_Cap_Save_Defaults(board_num, 0);
-    printf("CAP Calibration factors: WithOUT Mfg Key\n");
+    serial2.printf("CAP Calibration factors: WithOUT Mfg Key\n");
     for (cell_num = 0; cell_num < cells; cell_num++)
     {
-        printf("Calibration Cap[%d] = %d\n", cell_num + 1, Eeprom_Cap_Values[board_num].cap[cell_num]);
+        serial2.printf("Calibration Cap[%d] = %d\n", cell_num + 1, Eeprom_Cap_Values[board_num].cap[cell_num]);
     }
 
     //Eeprom_Current_Save_Defaults(board_num, 0); 
-    printf("Current Calibration factors: WithOUT Mfg Key\n");
+    serial2.printf("Current Calibration factors: WithOUT Mfg Key\n");
     for (cell_num = 0; cell_num < cells; cell_num++)
     {
-        printf("Charge Calibration Current[%d] = %d\n", cell_num + 1, Eeprom_Current_Values[board_num].current[cell_num].charge);
-        printf("Discharge Calibration Current[%d] = %d\n\n", cell_num + 1, Eeprom_Current_Values[board_num].current[cell_num].discharge);
+        serial2.printf("Charge Calibration Current[%d] = %d\n", cell_num + 1, Eeprom_Current_Values[board_num].current[cell_num].charge);
+        serial2.printf("Discharge Calibration Current[%d] = %d\n\n", cell_num + 1, Eeprom_Current_Values[board_num].current[cell_num].discharge);
     }
 
    /* Eeprom_Current_Load(board_num, EEPROM_MFG_KEY);
@@ -119,8 +126,8 @@ int main()
             signed_temp = SIGNED_RIGHT_SHIFT_WITH_ROUND(signed_temp, BALANCER_CURRENT_SCALE_FACTOR_SHIFT);
             cell[board_num][cell_num].discharge_current = base_discharge_current + signed_temp;
 
-            printf("Cell Charge Current[%d] = %d\n", cell_num + 1, cell[board_num][cell_num].charge_current);
-            printf("Cell Discharge Current[%d] = %d\n\n", cell_num + 1, cell[board_num][cell_num].discharge_current);
+            serial2.printf("Cell Charge Current[%d] = %d\n", cell_num + 1, cell[board_num][cell_num].charge_current);
+            serial2.printf("Cell Discharge Current[%d] = %d\n\n", cell_num + 1, cell[board_num][cell_num].discharge_current);
 
             //// Scale to time resolution used by balancer algorithm.
             //charge_target_ptr[cell_num] <<= BALANCER_TIME_RESOLUTION_SHIFT;
@@ -136,7 +143,29 @@ int main()
         {
             Current_Commands[DC2100A_NUCLEO_BOARD_NUM][cell_num] = chargeVals[cell_num];
         }
+
+
+        unsigned int16 timm1 = tSpan.read_us();
+        
         SOC_Balance();
+
+        unsigned int16 timm2 = tSpan.read_us();
+        unsigned int16 dur = timm2 - timm1;
+
+        for (cell_num = 0; cell_num < DC2100A_NUM_CELLS; cell_num = cell_num + 1)
+        {
+            int16 bal_timer;
+            bal_timer = Balancer_Active_State[board_num][cell_num] & BALANCER_ACTIVE_STATE_TIME_MASK;
+            serial2.printf("Cell[%d]\nCommand = %d\tTime = %d\n\n", cell_num + 1, (int16)((Balancer_Active_State[board_num][cell_num] & BALANCER_ACTIVE_STATE_COMMAND_MASK) >> 15),
+                bal_timer);
+        }
+
+        
+
+        serial2.printf("\nSOC_Balance Duration = %d us\n", dur);
+        serial2.printf("\nTime 1 = %d \t Timer 2 = %d us\n", timm1, timm2);
+
+        tSpan.stop();
     }
 
     return 0;
