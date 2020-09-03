@@ -67,7 +67,7 @@
 
 //! @name Voltage Monitor Module Constants
 //! @{
-#define VOLTAGE_TASK_RATE                   200  // 100       //!< in ms, the rate at which the voltage monitor task is executed
+#define VOLTAGE_TASK_RATE                   100  // 200  //       //!< in ms, the rate at which the voltage monitor task is executed
 #define VOLTAGE_CELL_BITS_PER_MV            (UV_PER_V/MV_PER_V/LTC6804_VOLTAGE_RESOLUTION)  //!< number of bits per mV in cell voltage measurements
 //! @}
 

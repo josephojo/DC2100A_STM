@@ -73,17 +73,17 @@
 #define BALANCER_ALGORITHM_NUM_BOARDS       1       // Note - the Balancer_Set(BALANCER_DELTA_Q_TYPE* charge_target_ptr) function is limited to this many boards.
 #define BALANCER_ALGORITHM_PASSES           1      // The number of iterations algorithm performs to determine optimal active balance states to achieve desired delta Q.
 
-#define BALANCER_TIME_RESOLUTION_SHIFT      8 //2       // Division  #Changed - Reducing Balancer Rate to 3.90625ms
-#define BALANCER_TIME_RESOLUTION            (1L << BALANCER_TIME_RESOLUTION_SHIFT) // resolution = 256 samples
+//#define BALANCER_TIME_RESOLUTION_SHIFT      2           // Division  #Changed - Not currently in use
+#define BALANCER_TIME_RESOLUTION            500         // resolution = 500 Task Runs per second #Changed - Using any integer for resolution now, removed limitation due to bit shifting (1L << BALANCER_TIME_RESOLUTION_SHIFT)
 
-//#if BALANCER_TIME_RESOLUTION != (MS_PER_S/BALANCER_TASK_RATE)  // Cannot divide by floating point numbers. Sees them as zero for some reason.
-//#error The balancer task must be called at the frequency necessary to provide the desired resolution in balance time.
-//#endif
+#if BALANCER_TIME_RESOLUTION != (MS_PER_S/BALANCER_TASK_RATE)  // Cannot divide by floating point numbers. Sees them as zero for some reason.
+#error The balancer task must be called at the frequency necessary to provide the desired resolution in balance time.
+#endif
 
-constexpr void checkBalTimeResolution(void)
-{
-    assert(BALANCER_TIME_RESOLUTION == (MS_PER_S / BALANCER_TASK_RATE)); // The balancer task must be called at the frequency necessary to provide the desired resolution in balance time.
-}
+//constexpr void checkBalTimeResolution(void)
+//{
+//    assert(BALANCER_TIME_RESOLUTION == (MS_PER_S / BALANCER_TASK_RATE)); // The balancer task must be called at the frequency necessary to provide the desired resolution in balance time.
+//}
 
 
 #define BALANCER_CHARGE_EFFICIENCY                  92 //77 //92      // in %, efficiency of balancer when charging a cell #Changed - Changed Efficiency to match what was physically measured
@@ -112,12 +112,15 @@ unsigned int16 pwmOffFlag = 0;
 // Local Data
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 BALANCER_CONTROL_STATE_TYPE balancer_control_state; // State in which the balancer task is currently operating
-int8 balancer_watchdog_counter;                     // Counter for how often balancer task needs to send watchdog commands to prevent LTC3300-1 from goign to sleep.
+int16 balancer_watchdog_counter;                     // Counter for how often balancer task needs to send watchdog commands to prevent LTC3300-1 from goign to sleep.
 BOOLEAN balancer_synchronous_mode;                  // TRUE if LTC3300-1 are to be operated in Synchronous mode.
 unsigned int16 balancer_gate_drive_ok[DC2100A_MAX_BOARDS];   // Bitmap for gate drive signal status bits, where bit 0 is cell 1.  Note that these are 0 if balancer is not on, as well as if gate drive is not ok.
 unsigned int16 balancer_cells_ov_ok;                         // Bitmap for cells overvoltage status bits, where bit 0 is board 0.  1 indicates that cells are not overvoltaged.
 unsigned int16 balancer_stack_ov_ok;                         // Bitmap for stack overvoltage status bits, where bit 0 is board 0.  1 indicates that stack is not overvoltaged.
 unsigned int16 balancer_temperature_ok;                      // Bitmap for temperature ok, where bit 0 is board 0.  1 indicates that stack is not overtemperature.
+
+// For Testing
+string str = "";
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Local Prototypes
@@ -381,6 +384,7 @@ void Balancer_Control_Task_PWM(void)
             balancer_control_state = BALANCER_CONTROL_ON;
             pwmOffFlag = 0;
         }
+        //str += "OFF\n";
         break;
 
     case BALANCER_CONTROL_ON:
@@ -440,6 +444,7 @@ void Balancer_Control_Task_PWM(void)
                 balancer_control_state = BALANCER_CONTROL_PWM_PAUSE;
             }
         }
+        //str += "ON\n";
         break;
 
     case BALANCER_CONTROL_SUSPEND:
@@ -563,7 +568,8 @@ void Balancer_Set(BALANCER_DELTA_Q_TYPE* charge_target_ptr)
                 cell[board_num][cell_num].discharge_current = base_discharge_current + signed_temp;
 
                 // Scale to time resolution used by balancer algorithm.
-                charge_target_ptr[cell_num] <<= BALANCER_TIME_RESOLUTION_SHIFT;
+                //charge_target_ptr[cell_num] <<= BALANCER_TIME_RESOLUTION_SHIFT; // #Changed - Due to resolution being multiples of 2
+                charge_target_ptr[cell_num] *= BALANCER_TIME_RESOLUTION;
 
                 // Start with the primary charge moved equal to the total charge requested to be moved.
                 cell[board_num][cell_num].primary_charge = charge_target_ptr[cell_num];
@@ -688,7 +694,8 @@ void Balancer_Set(BALANCER_DELTA_Q_TYPE* charge_target_ptr)
                 // Calculate actual charge moved and scale back to mAs for SOC algorithm.
                 //signed_temp = (signed_temp) * cell[board_num][cell_num].discharge_current; // todo - the xls feeds back the theoretical Delta-Q, not what actually is actually moved due to the quantitized balancer times.
                 signed_temp = cell[board_num][cell_num].total_charge;
-                charge_target_ptr[cell_num] = SIGNED_RIGHT_SHIFT_WITH_ROUND(signed_temp, BALANCER_TIME_RESOLUTION_SHIFT);
+                //charge_target_ptr[cell_num] = SIGNED_RIGHT_SHIFT_WITH_ROUND(signed_temp, BALANCER_TIME_RESOLUTION_SHIFT);
+                charge_target_ptr[cell_num] = SIGNED_DIVIDE_BY_UNSIGNED_WITH_ROUND(signed_temp, BALANCER_TIME_RESOLUTION);
             }
             else
             {
@@ -701,7 +708,8 @@ void Balancer_Set(BALANCER_DELTA_Q_TYPE* charge_target_ptr)
                 // Calculate actual charge moved and scale back to mAs for SOC algorithm.
                 //signed_temp = (-signed_temp) * cell[board_num][cell_num].charge_current; // todo - the xls feeds back the theoretical Delta-Q, not what actually is actually moved due to the quantitized balancer times.
                 signed_temp = cell[board_num][cell_num].total_charge;
-                charge_target_ptr[cell_num] = SIGNED_RIGHT_SHIFT_WITH_ROUND(signed_temp, BALANCER_TIME_RESOLUTION_SHIFT);
+                //charge_target_ptr[cell_num] = SIGNED_RIGHT_SHIFT_WITH_ROUND(signed_temp, BALANCER_TIME_RESOLUTION_SHIFT);
+                charge_target_ptr[cell_num] = SIGNED_DIVIDE_BY_UNSIGNED_WITH_ROUND(signed_temp, BALANCER_TIME_RESOLUTION);
             }
 
             balancer_max_and_nextstop_update(board_num, Balancer_Active_State[board_num][cell_num]);

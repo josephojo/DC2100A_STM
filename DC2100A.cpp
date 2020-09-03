@@ -20,12 +20,21 @@
 #include "SourceLib/Balancer.h"
 #include "SourceLib/SOC.h"
 
+ // creates a queue with the default size
+EventQueue mainQueue;
+
+void Task_Balancer(void);                       // Controls the balancers in the DC2100A system
+
+#define RUN_TIME 10000 // In ms
+
 Serial serial2(USBTX, USBRX);
 
 
 int main()
 {
-    //unsigned int8 rxCmd[4]; // Revision Group Cmd
+    unsigned int16 timm1;
+    unsigned int16 timm2;
+    unsigned int16 dur;
 
     Timer tSpan;
     tSpan.start();
@@ -47,35 +56,17 @@ int main()
     System_Status_Task();
     System_Status_Task();
 
+    // Initialize the Other Higher Level Functions
+    Voltage_Init();                                 // Init after LTC6804
+    Temperature_Init();                             // Init after LTC6804
+    Balancer_Init();                                // Init after LTC6804 and LTC3300
+
+    mainQueue.call_every(BALANCER_TASK_RATE, Task_Balancer);
+         
     int cells = 12;
     int cell_num = 0;
 
-    //Eeprom_Cap_Save_Defaults(board_num, 0);
-    serial2.printf("CAP Calibration factors: WithOUT Mfg Key\n");
-    for (cell_num = 0; cell_num < cells; cell_num++)
-    {
-        serial2.printf("Calibration Cap[%d] = %d\n", cell_num + 1, Eeprom_Cap_Values[board_num].cap[cell_num]);
-    }
-
-    //Eeprom_Current_Save_Defaults(board_num, 0); 
-    serial2.printf("Current Calibration factors: WithOUT Mfg Key\n");
-    for (cell_num = 0; cell_num < cells; cell_num++)
-    {
-        serial2.printf("Charge Calibration Current[%d] = %d\n", cell_num + 1, Eeprom_Current_Values[board_num].current[cell_num].charge);
-        serial2.printf("Discharge Calibration Current[%d] = %d\n\n", cell_num + 1, Eeprom_Current_Values[board_num].current[cell_num].discharge);
-    }
-
-   /* Eeprom_Current_Load(board_num, EEPROM_MFG_KEY);
-    printf("Current Calibration factors: With Mfg Key\n");
-    for (cell_num = 0; cell_num < cells; cell_num++)
-    {
-        printf("Charge Calibration Current[%d] = %d\n", cell_num + 1, Eeprom_Current_Values[board_num].current[cell_num].charge);
-        printf("Discharge Calibration Current[%d] = %d\n\n", cell_num + 1, Eeprom_Current_Values[board_num].current[cell_num].discharge);
-    }*/
-
-
-
-#define BALANCER_ALGORITHM_NUM_BOARDS       1       // Note - the Balancer_Set(BALANCER_DELTA_Q_TYPE* charge_target_ptr) function is limited to this many boards.
+   #define BALANCER_ALGORITHM_NUM_BOARDS       1       // Note - the Balancer_Set(BALANCER_DELTA_Q_TYPE* charge_target_ptr) function is limited to this many boards.
     signed int32 signed_temp;
     struct
     {
@@ -146,32 +137,49 @@ int main()
         }
 
 
-        unsigned int16 timm1 = tSpan.read_us();
+        timm1 = tSpan.read_us();
         
         SOC_Balance();
 
-        unsigned int16 timm2 = tSpan.read_us();
-        unsigned int16 dur = timm2 - timm1;
+        timm2 = tSpan.read_us();
+        dur = timm2 - timm1;
 
-        for (cell_num = 0; cell_num < DC2100A_NUM_CELLS; cell_num = cell_num + 1)
-        {
-            int16 bal_timer;
-            bal_timer = Balancer_Active_State[board_num][cell_num] & BALANCER_ACTIVE_STATE_TIME_MASK;
-            serial2.printf("Cell[%d]\nCommand = %d\tTime = %d\n\n", cell_num + 1, (int16)((Balancer_Active_State[board_num][cell_num] & BALANCER_ACTIVE_STATE_COMMAND_MASK) >> 15),
-                bal_timer);
-        }
-
-        
-
-        serial2.printf("\nSOC_Balance Duration = %d us\n", dur);
-        serial2.printf("\nTime 1 = %d \t Timer 2 = %d us\n", timm1, timm2);
-
-        tSpan.stop();
     }
+
+    for (cell_num = 0; cell_num < DC2100A_NUM_CELLS; cell_num = cell_num + 1)
+    {
+        int16 bal_timer;
+        bal_timer = Balancer_Active_State[board_num][cell_num] & BALANCER_ACTIVE_STATE_TIME_MASK;
+        serial2.printf("Cell[%d]\nCommand = %d\tTime = %d\n\n", cell_num + 1, (int16)((Balancer_Active_State[board_num][cell_num] & BALANCER_ACTIVE_STATE_COMMAND_MASK) >> 15),
+            bal_timer);
+    }
+
+    serial2.printf("\nSOC_Balance Duration = %d us\n", dur);
+    serial2.printf("\nTime 1 = %d \t Timer 2 = %d us\n", timm1, timm2);
+
+
+    mainQueue.dispatch(RUN_TIME);
+    serial2.printf("%s", str.c_str());
+
+
+    tSpan.stop();
 
     return 0;
 }
 
+
+// Controls the Balancers
+void Task_Balancer(void)
+{
+    //long tim1 = testTimer.read_us();
+    if (returnSysState() == SYSTEM_STATE_AWAKE)
+    {
+        //Balancer_Control_Task(); 
+        Balancer_Control_Task_PWM();
+    }
+    /*balTime += testTimer.read_us() - tim1;
+    balCount++;*/
+}
 
 
 
@@ -305,11 +313,11 @@ int main()
     // events are simple callbacks, call every specified amount of milliseconds
     mainQueue.call_every(BALANCER_TASK_RATE,        Task_Balancer);
     mainQueue.call_every(VOLTAGE_TASK_RATE,         Task_Voltage); // Used to me 100ms now 200ms
-    //mainQueue.call_every(PACK_CURRENT_TASK_RATE,    Task_Pack_Current);
-    //mainQueue.call_every(TEMPERATURE_TASK_RATE,     Task_Temperature);
+    //mainQueue.call_every(PACK_CURRENT_TASK_RATE,    Task_Pack_Current); // Not currently in use 
+    //mainQueue.call_every(TEMPERATURE_TASK_RATE,     Task_Temperature); // Not currently in use 
     mainQueue.call_every(USB_TASK_RATE,             Task_Parser);
     mainQueue.call_every(STATUS_TASK_RATE,          Task_Status);
-    mainQueue.call_every(DETECT_TASK_RATE,          Task_Detect);
+    mainQueue.call_every(DETECT_TASK_RATE,          Task_Detect); // Not currently in use 
     mainQueue.call_every(ERROR_TASK_RATE,           Task_Error);
 
     USBQueue.call_every(USB_TASK_RATE, Task_Get_USB);

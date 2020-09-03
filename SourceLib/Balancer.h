@@ -54,15 +54,18 @@
 // Includes
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 #include "Typedefs.h"
+//#include "../mbed.h"
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Definitions
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//extern string str;
+
 
 //! @name Balancer Control Module Constants
 //! @{
-//#define BALANCER_TASK_RATE                  62.5  //!< in ms, the rate at which the balancer control task is executed. #Changed - Reducing Balancer Rate to 62.5ms // Can't define floating point numbers
-constexpr auto BALANCER_TASK_RATE = 3.90625;       //!< in ms, the rate at which the balancer control task is executed. #Changed - Reducing Balancer Rate to 62.5ms;
+#define BALANCER_TASK_RATE              2      //!< in ms, the rate at which the balancer control task is executed. #Changed - Reducing Balancer Rate to 62.5ms // Can't define floating point numbers
+//constexpr auto BALANCER_TASK_RATE = 2;       //!< in ms, the rate at which the balancer control task is executed. #Changed - Reducing Balancer Rate to 62.5ms;
 //! @}
 
 #define MPC_STIME 4000                          //!< in ms, the rate at which the high level sends balance charge commands to the balancer
