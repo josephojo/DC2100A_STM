@@ -130,7 +130,8 @@ int main()
         //Balancer_Set(chargeVals);
 
         //signed int16 chargeVals[12] = { 0, 0, 7432, -6000, 4000, 0, 0, 0, 0, 0, 0, 0 };
-        signed int16 chargeVals[12] = { 0, 0, 0, 0, 6000, 0, 0, 0, 0, 0, 0, 0 };
+        //signed int16 chargeVals[12] = { 0, 0, 10000, 10000, 5800, 10000, 0, 0, 0, 0, 0, 0 };
+        signed int16 chargeVals[12] = { 0, 0, 5800, 5800, 10000, 5800, 0, 0, 0, 0, 0, 0 };
         for (cell_num = 0; cell_num < DC2100A_NUM_CELLS; cell_num = cell_num + 1)
         {
             Current_Commands[DC2100A_NUCLEO_BOARD_NUM][cell_num] = chargeVals[cell_num];
@@ -159,7 +160,7 @@ int main()
 
 
     mainQueue.dispatch(RUN_TIME);
-    serial2.printf("%s", str.c_str());
+    //serial2.printf("%s", str.c_str());
 
 
     tSpan.stop();
@@ -174,8 +175,8 @@ void Task_Balancer(void)
     //long tim1 = testTimer.read_us();
     if (returnSysState() == SYSTEM_STATE_AWAKE)
     {
-        //Balancer_Control_Task(); 
-        Balancer_Control_Task_PWM();
+        Balancer_Control_Task(); 
+        //Balancer_Control_Task_PWM();
     }
     /*balTime += testTimer.read_us() - tim1;
     balCount++;*/
@@ -868,54 +869,57 @@ void Task_Parser(void)
 
         //    // todo - rename this command // #NeededNow??? - Will we need this? #Changed - Commented this out since I don't think we need it
         //case USB_PARSER_CAP_DEMO_COMMAND:                       /* Charge/Discharge the Cap Board */
-        //    //rtos_await(0 != usb_parser_receive_queue.Length); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
-        //    incomingData_Mutex.lock(); // Lock incoming data mutex
-        //    while (usb_parser_receive_queue.Length == 0) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
-        //    {
-        //        incomingData_CV.wait();
-        //    }
-        //    switch (USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue))
-        //    {
-        //    case 'C':   //start charging
-        //        System_Cap_Demo.charging = 1;
-        //        System_Cap_Demo.discharging = 0;
-        //        USB_Parser_System_Data_Response();
-        //        break;
-        //    case 'N':   //suspend charging
-        //        System_Cap_Demo.charging = 0;
-        //        System_Cap_Demo.discharging = 0;
-        //        USB_Parser_System_Data_Response();
-        //        break;
-        //    case 'D':   //start discharging
-        //        System_Cap_Demo.charging = 0;
-        //        System_Cap_Demo.discharging = 1;
-        //        USB_Parser_System_Data_Response();
-        //        break;
-        //    case 'c':   //toggle charging
-        //        if (Pack_Current_IO.output_enabled)
-        //        {
-        //            Pack_Current_IO.charging_output = 1 - Pack_Current_IO.charging_output;
-        //        }
-        //        else
-        //        {
-        //            Pack_Current_IO.charging_output = 0;
-        //        }
-        //        USB_Parser_Pack_Current_Data_Response();
-        //        break;
-        //    case 'd':   //toggle discharging
-        //        if (Pack_Current_IO.output_enabled)
-        //        {
-        //            Pack_Current_IO.discharging_output = 1 - Pack_Current_IO.discharging_output;
-        //        }
-        //        else
-        //        {
-        //            Pack_Current_IO.discharging_output = 0;
-        //        }
-        //        USB_Parser_Pack_Current_Data_Response();
-        //        break;
-        //    }
-        //    incomingData_Mutex.unlock(); // Unlock incoming data mutex
-        //    break;
+        /*
+            //rtos_await(0 != usb_parser_receive_queue.Length); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
+            incomingData_Mutex.lock(); // Lock incoming data mutex
+            while (usb_parser_receive_queue.Length == 0) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
+            {
+                incomingData_CV.wait();
+            }
+            switch (USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue))
+            {
+            case 'C':   //start charging
+                System_Cap_Demo.charging = 1;
+                System_Cap_Demo.discharging = 0;
+                USB_Parser_System_Data_Response();
+                break;
+            case 'N':   //suspend charging
+                System_Cap_Demo.charging = 0;
+                System_Cap_Demo.discharging = 0;
+                USB_Parser_System_Data_Response();
+                break;
+            case 'D':   //start discharging
+                System_Cap_Demo.charging = 0;
+                System_Cap_Demo.discharging = 1;
+                USB_Parser_System_Data_Response();
+                break;
+            case 'c':   //toggle charging
+                if (Pack_Current_IO.output_enabled)
+                {
+                    Pack_Current_IO.charging_output = 1 - Pack_Current_IO.charging_output;
+                }
+                else
+                {
+                    Pack_Current_IO.charging_output = 0;
+                }
+                USB_Parser_Pack_Current_Data_Response();
+                break;
+            case 'd':   //toggle discharging
+                if (Pack_Current_IO.output_enabled)
+                {
+                    Pack_Current_IO.discharging_output = 1 - Pack_Current_IO.discharging_output;
+                }
+                else
+                {
+                    Pack_Current_IO.discharging_output = 0;
+                }
+                USB_Parser_Pack_Current_Data_Response();
+                break;
+            }
+            incomingData_Mutex.unlock(); // Unlock incoming data mutex
+            break;
+
+        */
 
         case USB_PARSER_ALGORITHM_COMMAND:                  /* Timed Balance Incorporating Algorithm */
             // Get the usb_parser_subcommand and board number

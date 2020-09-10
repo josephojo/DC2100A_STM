@@ -131,18 +131,19 @@
                 temp_data[byte_num] = data_ptr[byte_num - 2];                                   \
             }                                                                                   \
             Error_Data_Set(ERROR_CODE_LTC3300_CRC, temp_data, num_bytes + 2);                   \
-                                                                                                \
         }    
-            //printf("\t ####  Error ###\r\n");                                                   \
-            //printf("Board Num: %d\r\n", address);                                               \
-            //printf("IC Num: %d\r\n", ic_num);                                                   \
-            //printf("Command: %d\r\n", command);                                                 \
-            //for (int i=3; i< MIN(num_bytes + 2, ERROR_DATA_SIZE);i++)                           \
-            //{                                                                                   \
-            //    printf("Data[%d]: %d\r\n", i, temp_data[i]);                                    \
-            //}                                                                                   \
-            //printf("--------------------------------------------------\n\n");                   \
 
+/*
+            printf("\t ####  Error ###\r\n");                                                   \
+            printf("Board Num: %d\r\n", address);                                               \
+            printf("IC Num: %d\r\n", ic_num);                                                   \
+            printf("Command: %d\r\n", command);                                                 \
+            for (int i=3; i< MIN(num_bytes + 2, ERROR_DATA_SIZE);i++)                           \
+            {                                                                                   \
+                printf("Data[%d]: %d\r\n", i, temp_data[i]);                                    \
+            }                                                                                   \
+            printf("--------------------------------------------------\n\n");                   \
+*/
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Global Data

@@ -53,8 +53,8 @@
 // Includes
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 #include "Typedefs.h"
-#include "LTC3300-1.h"
 #include "DC2100A.h"
+#include "LTC3300-1.h"
 #include "System.h"
 #include "Balancer.h"
 #include "LTC6804-2.h"
@@ -74,7 +74,7 @@
 #define BALANCER_ALGORITHM_PASSES           1      // The number of iterations algorithm performs to determine optimal active balance states to achieve desired delta Q.
 
 //#define BALANCER_TIME_RESOLUTION_SHIFT      2           // Division  #Changed - Not currently in use
-#define BALANCER_TIME_RESOLUTION            500         // resolution = 500 Task Runs per second #Changed - Using any integer for resolution now, removed limitation due to bit shifting (1L << BALANCER_TIME_RESOLUTION_SHIFT)
+#define BALANCER_TIME_RESOLUTION            (1000 / BALANCER_TASK_RATE)         // resolution = 100 Task Runs per second #Changed - Using any integer for resolution now, removed limitation due to bit shifting (1L << BALANCER_TIME_RESOLUTION_SHIFT)
 
 #if BALANCER_TIME_RESOLUTION != (MS_PER_S/BALANCER_TASK_RATE)  // Cannot divide by floating point numbers. Sees them as zero for some reason.
 #error The balancer task must be called at the frequency necessary to provide the desired resolution in balance time.

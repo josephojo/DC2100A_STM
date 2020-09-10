@@ -580,6 +580,14 @@ void USB_Parser_Board_Cell_Present_Command(int16 board_num)
 {
 
     voltage_cell_present_flags[board_num] = getUSBint16_ASCII();
+    if (voltage_cell_present_flags[board_num] > (1 << LTC3300_NUM_CELLS))
+    {
+        connectedLTC3300s[board_num] = 2;
+    }
+    else
+    {
+        connectedLTC3300s[board_num] = 1;
+    }
 
     return;
 }
@@ -607,12 +615,14 @@ void USB_Parser_Board_Active_Balancer_Command(int16 board_num)
         Balancer_Active_State[board_num][cell_num] = getUSBint16_ASCII();
     }
 
-    //// Send the balance timers for the selected board.
-    //for (cell_num = 0; cell_num < DC2100A_NUM_CELLS; cell_num++)
-    //{
-    //    serial.printf("Cell[%d]\tCommand = %d\tTime = %i\n", cell_num + 1, (int)((Balancer_Active_State[board_num][cell_num] & BALANCER_ACTIVE_STATE_COMMAND_MASK) >> 15), \
-    //        ((int)Balancer_Active_State[board_num][cell_num] & BALANCER_ACTIVE_STATE_TIME_MASK));
-    //}
+    /*
+    // Send the balance timers for the selected board.
+    for (cell_num = 0; cell_num < DC2100A_NUM_CELLS; cell_num++)
+    {
+        serial.printf("Cell[%d]\tCommand = %d\tTime = %i\n", cell_num + 1, (int)((Balancer_Active_State[board_num][cell_num] & BALANCER_ACTIVE_STATE_COMMAND_MASK) >> 15), \
+            ((int)Balancer_Active_State[board_num][cell_num] & BALANCER_ACTIVE_STATE_TIME_MASK));
+    }
+    */
 
     Balancer_Max_and_Nextstop_Find();
 
