@@ -60,6 +60,7 @@
 #include "LTC6804-2.h"
 #include "Eeprom.h"
 #include "Error.h"
+#include "NUCLEO_Timer.h"
 //#include "USB_Parser.h"
 #include <string.h>
 #include <assert.h>
@@ -442,6 +443,11 @@ void Balancer_Control_Task_PWM(void)
             if (Balancer_Active_Time_Max % PWM_ON_PERIOD == 0) 
             {
                 balancer_control_state = BALANCER_CONTROL_PWM_PAUSE;
+
+                //// Turn off and back on here? // === Does not work. Equivalent to Without VPLM
+                //LTC3300_Suspend(LTC6804_BROADCAST); // Pause all balancing
+                //NUCLEO_Timer_Delay_us(500);
+                //LTC3300_Execute(LTC6804_BROADCAST); // Resume Balancing
             }
         }
         //str += "ON\n";

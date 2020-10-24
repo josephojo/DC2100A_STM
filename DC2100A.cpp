@@ -454,8 +454,8 @@ void Task_Balancer(void)
     //long tim1 = testTimer.read_us();
     if (returnSysState() == SYSTEM_STATE_AWAKE)
     {
-        //Balancer_Control_Task(); 
-        Balancer_Control_Task_PWM();
+        Balancer_Control_Task(); 
+        //Balancer_Control_Task_PWM();
     }
     /*balTime += testTimer.read_us() - tim1;
     balCount++;*/
