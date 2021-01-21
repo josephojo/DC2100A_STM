@@ -499,24 +499,24 @@ void Task_Parser(void)
 
     //serial.printf("Inside Task Parser\r\n");
     // Prevent a new response from being started before the old one has been sent
-    if (usb_parser_transmit_queue.Length != 0)
+    if (!usb_parser_transmit_queue.empty())
     {
     }
     // If async responses are pending, process them now
-    else if (usb_parser_async_queue.Length != 0)
+    else if (!usb_parser_async_queue.empty())
     {
         // Send asyncs if any are pending
         USB_Parser_Async_Response();
     }
     // Otherwise, process responses for the incoming USB
-    else if (usb_parser_receive_queue.Length != 0)
+    else if (!usb_parser_receive_queue.empty())
     {
         //LED_COMM_PIN = 1;
         //DEBUG1_OUT_PIN = 0;
         //serial.printf("In Queue Length : %d!\r\n", usb_parser_receive_queue.Length);
 
         // Get the command to process.
-        usb_parser_command = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
+        usb_parser_command = USB_Parser_Buffer_Get_Char(usb_parser_receive_queue);
 
         // Parse the command
         switch (usb_parser_command)
@@ -555,12 +555,12 @@ void Task_Parser(void)
 
             //Get the read/write character and board number
             incomingData_Mutex.lock(); // Lock incoming data mutex
-            while (usb_parser_receive_queue.Length < 3) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
+            while (usb_parser_receive_queue.size() < 3) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
             {
                 incomingData_CV.wait();
             }
 
-            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
+            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(usb_parser_receive_queue);
             usb_parser_board_num = getUSBint8_ASCII();
 
             incomingData_Mutex.unlock(); // Unlock incoming data mutex
@@ -572,7 +572,7 @@ void Task_Parser(void)
                 // Get the mfg data
                 //rtos_await(usb_parser_receive_queue.Length >= (DC2100A_MODEL_NUM_SIZE + DC2100A_CAP_DEMO_SIZE + DC2100A_SERIAL_NUM_SIZE)); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
                 incomingData_Mutex.lock(); // Lock incoming data mutex
-                while (usb_parser_receive_queue.Length < (DC2100A_MODEL_NUM_SIZE + DC2100A_CAP_DEMO_SIZE + DC2100A_SERIAL_NUM_SIZE)) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
+                while (usb_parser_receive_queue.size() < (DC2100A_MODEL_NUM_SIZE + DC2100A_CAP_DEMO_SIZE + DC2100A_SERIAL_NUM_SIZE)) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
                 {
                     incomingData_CV.wait();
                 }
@@ -585,7 +585,7 @@ void Task_Parser(void)
             {
                 //rtos_await(usb_parser_receive_queue.Length >= (EEPROM_RESET_KEY_SIZE + SYSTEM_RESET_KEY_SIZE)); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
                 incomingData_Mutex.lock(); // Lock incoming data mutex
-                while (usb_parser_receive_queue.Length < (EEPROM_RESET_KEY_SIZE + SYSTEM_RESET_KEY_SIZE)) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
+                while (usb_parser_receive_queue.size() < (EEPROM_RESET_KEY_SIZE + SYSTEM_RESET_KEY_SIZE)) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
                 {
                     incomingData_CV.wait();
                 }
@@ -603,7 +603,7 @@ void Task_Parser(void)
             // Get the board number
             //rtos_await(usb_parser_receive_queue.Length >= (sizeof(usb_parser_board_num) * ASCII_PER_BYTE)); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
             incomingData_Mutex.lock(); // Lock incoming data mutex
-            while (usb_parser_receive_queue.Length < (sizeof(usb_parser_board_num) * ASCII_PER_BYTE)) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
+            while (usb_parser_receive_queue.size() < (sizeof(usb_parser_board_num) * ASCII_PER_BYTE)) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
             {
                 incomingData_CV.wait();
             }
@@ -644,7 +644,7 @@ void Task_Parser(void)
             // Get the board number
             //rtos_await(usb_parser_receive_queue.Length >= (sizeof(usb_parser_board_num) * ASCII_PER_BYTE));
             incomingData_Mutex.lock(); // Lock incoming data mutex
-            while (usb_parser_receive_queue.Length < (sizeof(usb_parser_board_num) * ASCII_PER_BYTE)) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
+            while (usb_parser_receive_queue.size() < (sizeof(usb_parser_board_num) * ASCII_PER_BYTE)) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
             {
                 incomingData_CV.wait();
             }
@@ -663,13 +663,13 @@ void Task_Parser(void)
             // Get the read/write character, board number, and number of bytes in command.
             //rtos_await(usb_parser_receive_queue.Length >= 4); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
             incomingData_Mutex.lock(); // Lock incoming data mutex
-            while (usb_parser_receive_queue.Length < 4) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
+            while (usb_parser_receive_queue.size() < 4) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
             {
                 incomingData_CV.wait();
             }
-            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
+            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(usb_parser_receive_queue);
             usb_parser_board_num = getUSBint8_ASCII();
-            usb_parser_num_bytes = ASCIItonybble(USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue));
+            usb_parser_num_bytes = ASCIItonybble(USB_Parser_Buffer_Get_Char(usb_parser_receive_queue));
             incomingData_Mutex.unlock(); // Unlock incoming data mutex
 
 
@@ -679,7 +679,7 @@ void Task_Parser(void)
                 // Wait for the bytes that need to be sent.
                 //rtos_await(usb_parser_receive_queue.Length >= (usb_parser_num_bytes * ASCII_PER_BYTE)); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
                 incomingData_Mutex.lock(); // Lock incoming data mutex
-                while (usb_parser_receive_queue.Length < (usb_parser_num_bytes * ASCII_PER_BYTE)) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
+                while (usb_parser_receive_queue.size() < (usb_parser_num_bytes * ASCII_PER_BYTE)) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
                 {
                     incomingData_CV.wait();
                 }
@@ -692,7 +692,7 @@ void Task_Parser(void)
                 // Wait for the one bytes that needs to be sent, before receiving num bytes.
                 //rtos_await(usb_parser_receive_queue.Length >= (1 * ASCII_PER_BYTE)); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
                 incomingData_Mutex.lock(); // Lock incoming data mutex
-                while (usb_parser_receive_queue.Length < (1 * ASCII_PER_BYTE)) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
+                while (usb_parser_receive_queue.size() < (1 * ASCII_PER_BYTE)) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
                 {
                     incomingData_CV.wait();
                 }
@@ -706,11 +706,11 @@ void Task_Parser(void)
             // Get the read/write character and board number
             //rtos_await(usb_parser_receive_queue.Length >= 3); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
             incomingData_Mutex.lock(); // Lock incoming data mutex
-            while (usb_parser_receive_queue.Length < 3) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
+            while (usb_parser_receive_queue.size() < 3) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
             {
                 incomingData_CV.wait();
             }
-            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
+            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(usb_parser_receive_queue);
             usb_parser_board_num = getUSBint8_ASCII();
             incomingData_Mutex.unlock(); // Unlock incoming data mutex
 
@@ -720,7 +720,7 @@ void Task_Parser(void)
             {
                 //rtos_await(usb_parser_receive_queue.Length >= (sizeof(BALANCER_ACTIVE_STATE_TYPE) * ASCII_PER_BYTE)); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
                 incomingData_Mutex.lock(); // Lock incoming data mutex
-                while (usb_parser_receive_queue.Length < (sizeof(BALANCER_ACTIVE_STATE_TYPE) * ASCII_PER_BYTE)) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
+                while (usb_parser_receive_queue.size() < (sizeof(BALANCER_ACTIVE_STATE_TYPE) * ASCII_PER_BYTE)) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
                 {
                     incomingData_CV.wait();
                 }
@@ -752,11 +752,11 @@ void Task_Parser(void)
         case USB_PARSER_PASSIVE_BALANCE_COMMAND:                /* Board Passive Balancers */
             //rtos_await(usb_parser_receive_queue.Length >= 3); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
             incomingData_Mutex.lock(); // Lock incoming data mutex
-            while (usb_parser_receive_queue.Length < 3) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
+            while (usb_parser_receive_queue.size() < 3) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
             {
                 incomingData_CV.wait();
             }
-            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
+            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(usb_parser_receive_queue);
             usb_parser_board_num = getUSBint8_ASCII();
             incomingData_Mutex.unlock(); // Unlock incoming data mutex
 
@@ -766,7 +766,7 @@ void Task_Parser(void)
             {
                 //rtos_await(usb_parser_receive_queue.Length >= (sizeof(BALANCER_PASSIVE_STATE_TYPE) * ASCII_PER_BYTE)); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
                 incomingData_Mutex.lock(); // Lock incoming data mutex
-                while (usb_parser_receive_queue.Length < (sizeof(BALANCER_PASSIVE_STATE_TYPE) * ASCII_PER_BYTE)) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
+                while (usb_parser_receive_queue.size() < (sizeof(BALANCER_PASSIVE_STATE_TYPE) * ASCII_PER_BYTE)) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
                 {
                     incomingData_CV.wait();
                 }
@@ -782,11 +782,11 @@ void Task_Parser(void)
         case USB_PARSER_CELL_PRESENT_COMMAND:                   /* Board Cell Present */
             //rtos_await(usb_parser_receive_queue.Length >= 3); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
             incomingData_Mutex.lock(); // Lock incoming data mutex
-            while (usb_parser_receive_queue.Length < 3) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
+            while (usb_parser_receive_queue.size() < 3) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
             {
                 incomingData_CV.wait();
             }
-            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
+            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(usb_parser_receive_queue);
             usb_parser_board_num = getUSBint8_ASCII();
             incomingData_Mutex.unlock(); // Unlock incoming data mutex
 
@@ -796,7 +796,7 @@ void Task_Parser(void)
             {
                 //rtos_await(usb_parser_receive_queue.Length >= (sizeof(VOLTAGE_CELL_PRESENT_TYPE) * ASCII_PER_BYTE)); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
                 incomingData_Mutex.lock(); // Lock incoming data mutex
-                while (usb_parser_receive_queue.Length < (sizeof(VOLTAGE_CELL_PRESENT_TYPE) * ASCII_PER_BYTE)) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
+                while (usb_parser_receive_queue.size() < (sizeof(VOLTAGE_CELL_PRESENT_TYPE) * ASCII_PER_BYTE)) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
                 {
                     incomingData_CV.wait();
                 }
@@ -812,13 +812,13 @@ void Task_Parser(void)
             // Get the read/write/default character, board number, and EEPROM_data_id.
             //rtos_await(usb_parser_receive_queue.Length >= 4); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
             incomingData_Mutex.lock(); // Lock incoming data mutex
-            while (usb_parser_receive_queue.Length < 4) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
+            while (usb_parser_receive_queue.size() < 4) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
             {
                 incomingData_CV.wait();
             }
-            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
+            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(usb_parser_receive_queue);
             usb_parser_board_num = getUSBint8_ASCII();
-            usb_parser_item_num = ASCIItonybble(USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue));
+            usb_parser_item_num = ASCIItonybble(USB_Parser_Buffer_Get_Char(usb_parser_receive_queue));
             incomingData_Mutex.unlock(); // Unlock incoming data mutex
 
 
@@ -843,7 +843,7 @@ void Task_Parser(void)
                 // Wait for the one bytes that needs to be sent, before receiving num bytes.
                 //rtos_await(usb_parser_receive_queue.Length >= usb_parser_num_bytes); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
                 incomingData_Mutex.lock(); // Lock incoming data mutex
-                while (usb_parser_receive_queue.Length < usb_parser_num_bytes) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
+                while (usb_parser_receive_queue.size() < usb_parser_num_bytes) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
                 {
                     incomingData_CV.wait();
                 }
@@ -857,7 +857,7 @@ void Task_Parser(void)
         case USB_PARSER_UVOV_THRESHOLDS_COMMAND:                /* Over and Under Voltage Thresholds */
             //rtos_await(usb_parser_receive_queue.Length >= (2 * sizeof(int16) * ASCII_PER_BYTE)); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
             incomingData_Mutex.lock(); // Lock incoming data mutex
-            while (usb_parser_receive_queue.Length < (2 * sizeof(int16) * ASCII_PER_BYTE)) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
+            while (usb_parser_receive_queue.size() < (2 * sizeof(int16) * ASCII_PER_BYTE)) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
             {
                 incomingData_CV.wait();
             }
@@ -876,7 +876,7 @@ void Task_Parser(void)
             {
                 incomingData_CV.wait();
             }
-            switch (USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue))
+            switch (USB_Parser_Buffer_Get_Char(usb_parser_receive_queue))
             {
             case 'C':   //start charging
                 System_Cap_Demo.charging = 1;
@@ -925,11 +925,11 @@ void Task_Parser(void)
             // Get the usb_parser_subcommand and board number
             //rtos_await(usb_parser_receive_queue.Length >= 1); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
             incomingData_Mutex.lock(); // Lock incoming data mutex
-            while (usb_parser_receive_queue.Length < 1) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
+            while (usb_parser_receive_queue.size() < 1) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
             {
                 incomingData_CV.wait();
             }
-            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
+            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(usb_parser_receive_queue);
             incomingData_Mutex.unlock(); // Unlock incoming data mutex
 
             usb_parser_board_num = DC2100A_NUCLEO_BOARD_NUM;   //  Balance algorithm only implemented for 1 board with 12 cells.

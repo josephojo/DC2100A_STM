@@ -46,6 +46,7 @@
 #include "Typedefs.h"
 #include "../mbed.h"
 #include "../BufferedSerial.h"
+#include "platform/CircularBuffer.h"
 //#include "USB_Descriptors.h"
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -95,6 +96,9 @@ typedef enum
 #define USB_PARSER_DEFAULT_STRING           "Not a recognized command"
 #define USB_PARSER_DEFAULT_STRING_SIZE      (sizeof(USB_PARSER_DEFAULT_STRING) - 1)
 
+#define USB_PARSER_BUFFER_SIZE        2 * 64 //2 * MaxMessageSize
+#define USB_PARSER_ASYNC_BUFFER_SIZE  (DC2100A_MAX_BOARDS*2)
+
 // Structure defining queues used by USB Parser
 // todo - This should be private.  It's pretty gross for main() to need to access it directly.
 typedef struct
@@ -112,9 +116,9 @@ typedef struct
 
 // Queues used by USB Parser
 // todo - These should be private.  It's pretty gross for main() to need to access them directly.
-extern USB_PARSER_QUEUE_TYPE usb_parser_async_queue;            // Queue for USB responses sent asynchronously by the FW.  It operates similarly to the receive queue, that receives command from other code modules instead of the USB.
-extern USB_PARSER_QUEUE_TYPE usb_parser_receive_queue;          // Queue for USB commands received from the USB.
-extern USB_PARSER_QUEUE_TYPE usb_parser_transmit_queue;         // Queue for USB responses to write to the USB.
+extern CircularBuffer<char, USB_PARSER_ASYNC_BUFFER_SIZE, int8> usb_parser_async_queue;      // Queue for USB responses sent asynchronously by the FW.  It operates similarly to the receive queue, that receives command from other code modules instead of the USB.
+extern CircularBuffer<char, USB_PARSER_BUFFER_SIZE, int8> usb_parser_receive_queue;          // Queue for USB commands received from the USB.
+extern CircularBuffer<char, USB_PARSER_BUFFER_SIZE, int8> usb_parser_transmit_queue;         // Queue for USB responses to write to the USB.
 
 // Storage used to maintain variables while rtos_await() is called.  Note - It seems like these should be maintained already by the RTOS?
 // todo - These should be private.  It's pretty gross for main() to need to access them directly.
@@ -178,12 +182,17 @@ void USB_Parser_IDString_Response(void);
 // todo - These should be private.  It's pretty gross for main() to need to access them directly.
 void USB_Parser_Check_Incoming(void);
 void USB_Parser_Check_Outgoing(void);
-BOOLEAN USB_Parser_Buffer_Put(USB_PARSER_QUEUE_TYPE* queue, char *data, int8 num_chars);
-BOOLEAN USB_Parser_Buffer_Get(USB_PARSER_QUEUE_TYPE* queue, char *data, int8 num_chars);
-char USB_Parser_Buffer_Get_Char(USB_PARSER_QUEUE_TYPE* queue);
+BOOLEAN USB_Parser_Buffer_Put(CircularBuffer<char, USB_PARSER_ASYNC_BUFFER_SIZE, int8> queue, char* data, int8 num_chars);
+BOOLEAN USB_Parser_Buffer_Get(CircularBuffer<char, USB_PARSER_ASYNC_BUFFER_SIZE, int8> queue, char* data, int8 num_chars);
+char USB_Parser_Buffer_Get_Char(CircularBuffer<char, USB_PARSER_ASYNC_BUFFER_SIZE, int8> queue);
+BOOLEAN USB_Parser_Buffer_Put(CircularBuffer<char, USB_PARSER_BUFFER_SIZE, int8> queue, char* data, int8 num_chars);
+BOOLEAN USB_Parser_Buffer_Get(CircularBuffer<char, USB_PARSER_BUFFER_SIZE, int8> queue, char* data, int8 num_chars);
+char USB_Parser_Buffer_Get_Char(CircularBuffer<char, USB_PARSER_BUFFER_SIZE, int8> queue);
 BOOLEAN USB_Parser_Buffer_Put_Char(char character);
-int8 USB_Parser_Buffer_Length_Used(USB_PARSER_QUEUE_TYPE* queue);
-int8 USB_Parser_Buffer_Length_Remaining(USB_PARSER_QUEUE_TYPE* queue);
+int8 USB_Parser_Buffer_Length_Used(CircularBuffer<char, USB_PARSER_ASYNC_BUFFER_SIZE, int8> queue);
+int8 USB_Parser_Buffer_Length_Remaining(CircularBuffer<char, USB_PARSER_ASYNC_BUFFER_SIZE, int8> queue);
+int8 USB_Parser_Buffer_Length_Used(CircularBuffer<char, USB_PARSER_BUFFER_SIZE, int8> queue);
+int8 USB_Parser_Buffer_Length_Remaining(CircularBuffer<char, USB_PARSER_BUFFER_SIZE, int8> queue);
 
 
 BOOLEAN sendUSBmessage();

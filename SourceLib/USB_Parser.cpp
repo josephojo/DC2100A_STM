@@ -69,8 +69,6 @@
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Definitions
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-#define USB_PARSER_ASYNC_BUFFER_SIZE  (DC2100A_MAX_BOARDS*2)
-#define USB_PARSER_BUFFER_SIZE        2 * 64 //2 * MaxMessageSize
 #define HELLOSTRING                   "Hello"
 #define USB_PARSER_SEND_TIMEOUT       50                    // in ms
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -79,9 +77,9 @@
 
 // Queues used by USB Parser
 // todo - These should be private.  It's pretty gross for main() to need to access them directly.
-USB_PARSER_QUEUE_TYPE usb_parser_async_queue;            // Queue for USB responses sent asynchronously by the FW.  It operates similarly to the receive queue, that receives command from other code modules instead of the USB.
-USB_PARSER_QUEUE_TYPE usb_parser_receive_queue;          // Queue for USB commands received from the USB.
-USB_PARSER_QUEUE_TYPE usb_parser_transmit_queue;         // Q ueue for USB responses to write to the USB.
+CircularBuffer<char, USB_PARSER_ASYNC_BUFFER_SIZE, int8> usb_parser_async_queue;      // Queue for USB responses sent asynchronously by the FW.  It operates similarly to the receive queue, that receives command from other code modules instead of the USB.
+CircularBuffer<char, USB_PARSER_BUFFER_SIZE, int8> usb_parser_receive_queue;          // Queue for USB commands received from the USB.
+CircularBuffer<char, USB_PARSER_BUFFER_SIZE, int8> usb_parser_transmit_queue;         // Queue for USB responses to write to the USB.
 
 // Storage used to maintain variables while rtos_await() is called.  Note - It seems like these should be maintained already by the RTOS?
 // todo - These should be private.  It's pretty gross for main() to need to access them directly.
@@ -127,56 +125,93 @@ void USB_Parser_Init(void)
     memset(usb_parser_receive_buffer, 0, sizeof(usb_parser_receive_buffer));
     memset(usb_parser_transmit_buffer, 0, sizeof(usb_parser_transmit_buffer));
 
-    // Init Async Buffer
-    usb_parser_async_queue.BufferSize = USB_PARSER_ASYNC_BUFFER_SIZE;
-    usb_parser_async_queue.Length = 0;
-    usb_parser_async_queue.ReadIndex = 0;
-    usb_parser_async_queue.WriteIndex = 0;
-    usb_parser_async_queue.buffer = usb_parser_async_buffer;
+    //// Init Async Buffer
+    //usb_parser_async_queue.BufferSize = USB_PARSER_ASYNC_BUFFER_SIZE;
+    //usb_parser_async_queue.Length = 0;
+    //usb_parser_async_queue.ReadIndex = 0;
+    //usb_parser_async_queue.WriteIndex = 0;
+    //usb_parser_async_queue.buffer = usb_parser_async_buffer;
 
-    // Init Receive Buffer
-    usb_parser_receive_queue.BufferSize = USB_PARSER_BUFFER_SIZE;
-    usb_parser_receive_queue.Length = 0;
-    usb_parser_receive_queue.ReadIndex = 0;
-    usb_parser_receive_queue.WriteIndex = 0;
-    usb_parser_receive_queue.buffer = usb_parser_receive_buffer;
+    //// Init Receive Buffer
+    //usb_parser_receive_queue.BufferSize = USB_PARSER_BUFFER_SIZE;
+    //usb_parser_receive_queue.Length = 0;
+    //usb_parser_receive_queue.ReadIndex = 0;
+    //usb_parser_receive_queue.WriteIndex = 0;
+    //usb_parser_receive_queue.buffer = usb_parser_receive_buffer;
 
-    // Init Transmit Buffer
-    usb_parser_transmit_queue.BufferSize = USB_PARSER_BUFFER_SIZE;
-    usb_parser_transmit_queue.Length = 0;
-    usb_parser_transmit_queue.ReadIndex = 0;
-    usb_parser_transmit_queue.WriteIndex = 0;
-    usb_parser_transmit_queue.buffer = usb_parser_transmit_buffer;
+    //// Init Transmit Buffer
+    //usb_parser_transmit_queue.BufferSize = USB_PARSER_BUFFER_SIZE;
+    //usb_parser_transmit_queue.Length = 0;
+    //usb_parser_transmit_queue.ReadIndex = 0;
+    //usb_parser_transmit_queue.WriteIndex = 0;
+    //usb_parser_transmit_queue.buffer = usb_parser_transmit_buffer;
+
+    serial.baud(115200); // BufferedSerial BaudRate
 
     // Send Hello message to the host
     USB_Parser_Hello_Response();
 
-    serial.baud(115200); // BufferedSerial BaudRate
+}
+
+// Returns the number of bytes that are written in the buffer (Smaller buffer)
+int8 USB_Parser_Buffer_Length_Used(CircularBuffer<char, USB_PARSER_ASYNC_BUFFER_SIZE, int8> queue)
+{
+    return queue.size();
 }
 
 // Returns the number of bytes that are written in the buffer
-int8 USB_Parser_Buffer_Length_Used(USB_PARSER_QUEUE_TYPE* queue)
+int8 USB_Parser_Buffer_Length_Used(CircularBuffer<char, USB_PARSER_BUFFER_SIZE, int8> queue)
 {
-    return queue->Length;
+    return queue.size();
+}
+
+// Returns the number of bytes that can be written to the buffer (Smaller Buffer)
+int8 USB_Parser_Buffer_Length_Remaining(CircularBuffer<char, USB_PARSER_ASYNC_BUFFER_SIZE, int8> queue)
+{
+    //return (queue->BufferSize - queue->Length); // #Commented this block
+    return (USB_PARSER_ASYNC_BUFFER_SIZE - queue.size());
+
 }
 
 // Returns the number of bytes that can be written to the buffer
-int8 USB_Parser_Buffer_Length_Remaining(USB_PARSER_QUEUE_TYPE* queue)
+int8 USB_Parser_Buffer_Length_Remaining(CircularBuffer<char, USB_PARSER_BUFFER_SIZE, int8> queue)
 {
-    return (queue->BufferSize - queue->Length);
+    //return (queue->BufferSize - queue->Length); // #Commented this block
+    return (USB_PARSER_BUFFER_SIZE - queue.size());
 }
 
-// Puts a series of bytes into a buffer if it is not full
-BOOLEAN USB_Parser_Buffer_Put(USB_PARSER_QUEUE_TYPE* queue, char *data, int8 num_chars)
+// Puts a series of bytes into a buffer if it is not full (Smaller Buffer)
+BOOLEAN USB_Parser_Buffer_Put(CircularBuffer<char, USB_PARSER_ASYNC_BUFFER_SIZE, int8> queue, char* data, int8 num_chars)
 {
     BOOLEAN success;
 
-    if(num_chars <= (queue->BufferSize - queue->Length))
+    if(!queue.full()) // num_chars <= (queue->BufferSize - queue->Length))
     {
         // move the data and report it was moved.
-        memcpy(queue->buffer + queue->WriteIndex, data, num_chars);
-        queue->WriteIndex += num_chars;
-        queue->Length += num_chars;
+        queue.push(data, (long unsigned int)num_chars);
+        success = TRUE;
+    }
+    else
+    {
+        // Do not put anything into the buffer if not enough room for everything.
+        success = FALSE;
+    }
+
+    return success;
+}
+
+// Puts a series of bytes into a buffer if it is not full
+BOOLEAN USB_Parser_Buffer_Put(CircularBuffer<char, USB_PARSER_BUFFER_SIZE, int8> queue, char* data, int8 num_chars)
+{
+    BOOLEAN success;
+
+    if(!queue.full()) // num_chars <= (queue->BufferSize - queue->Length))
+    {
+        // move the data and report it was moved.
+        queue.push(data, num_chars);
+        //memcpy(queue->buffer + queue->WriteIndex, data, num_chars);
+        //queue->WriteIndex += num_chars;
+        //queue->Length += num_chars;
         success = TRUE;
     }
     else
@@ -189,28 +224,52 @@ BOOLEAN USB_Parser_Buffer_Put(USB_PARSER_QUEUE_TYPE* queue, char *data, int8 num
 }
 
 // Gets a series of bytes from a buffer
-BOOLEAN USB_Parser_Buffer_Get(USB_PARSER_QUEUE_TYPE* queue, char *data, int8 num_chars)
+BOOLEAN USB_Parser_Buffer_Get(CircularBuffer<char, USB_PARSER_ASYNC_BUFFER_SIZE, int8> queue, char* data, int8 num_chars)
 {
     BOOLEAN success;
 
-    if(num_chars <= queue->Length)
+    // If empty or if the required number of characters is not yet available
+    if(!queue.empty() || (queue.size() < num_chars)) // num_chars <= queue->Length)
     {
         // move the data and report it was moved.
-        memcpy(data, queue->buffer + queue->ReadIndex, num_chars);
+        // memcpy(data, queue->buffer + queue->ReadIndex, num_chars);
+        queue.pop(data, num_chars);
+        success = TRUE;
+    }
+    else
+    {
+        // Do not get anything from the buffer if not enough to provide requested.
+        success = FALSE;
+    }
 
-        if(queue->Length == num_chars)
-        {
-            // If all characters read, reset the buffer
-            queue->Length = 0;
-            queue->ReadIndex = 0;
-            queue->WriteIndex = 0;
-        }
-        else
-        {
-            // If not all characters read, increment pointers
-            queue->ReadIndex += num_chars;
-            queue->Length -= num_chars;
-        }
+    return success;
+}
+
+// Gets a series of bytes from a buffer
+BOOLEAN USB_Parser_Buffer_Get(CircularBuffer<char, USB_PARSER_BUFFER_SIZE, int8> queue, char* data, int8 num_chars)
+{
+    BOOLEAN success;
+
+    // If empty or if the required number of characters is not yet available
+    if(!queue.empty() || (queue.size() < num_chars)) // num_chars <= queue->Length)
+    {
+        // move the data and report it was moved.
+        // memcpy(data, queue->buffer + queue->ReadIndex, num_chars);
+        queue.pop(data, num_chars);
+
+        //if(queue->Length == num_chars) // #Commented this block
+        //{
+        //    // If all characters read, reset the buffer
+        //    queue->Length = 0;
+        //    queue->ReadIndex = 0;
+        //    queue->WriteIndex = 0;
+        //}
+        //else
+        //{
+        //    // If not all characters read, increment pointers
+        //    queue->ReadIndex += num_chars;
+        //    queue->Length -= num_chars;
+        //}
         success = TRUE;
     }
     else
@@ -223,25 +282,41 @@ BOOLEAN USB_Parser_Buffer_Get(USB_PARSER_QUEUE_TYPE* queue, char *data, int8 num
 }
 
 // Gets one character from a buffer.
-char USB_Parser_Buffer_Get_Char(USB_PARSER_QUEUE_TYPE* queue)
+char USB_Parser_Buffer_Get_Char(CircularBuffer<char, USB_PARSER_ASYNC_BUFFER_SIZE, int8> queue)
 {
     char retval;
 
-    retval = queue->buffer[(int16)(queue->ReadIndex)];
+    if (!queue.empty())
+    {
+        queue.pop(retval);
+    }
+    return retval;
+}
 
-    if(queue->Length == 1)
+// Gets one character from a buffer.
+char USB_Parser_Buffer_Get_Char(CircularBuffer<char, USB_PARSER_BUFFER_SIZE, int8> queue)
+{
+    char retval;
+
+    //retval = queue->buffer[(int16)(queue->ReadIndex)]; // #Commented this block
+    if (!queue.empty())
     {
-        // If all characters read, reset the buffer
-        queue->Length = 0;
-        queue->ReadIndex = 0;
-        queue->WriteIndex = 0;
+        queue.pop(retval);
     }
-    else
-    {
-        // If not all characters read, increment pointers
-        queue->ReadIndex++;
-        queue->Length--;
-    }
+
+    //if(queue->Length == 1)// #Commented this block
+    //{
+    //    // If all characters read, reset the buffer
+    //    queue->Length = 0;
+    //    queue->ReadIndex = 0;
+    //    queue->WriteIndex = 0;
+    //}
+    //else
+    //{
+    //    // If not all characters read, increment pointers
+    //    queue->ReadIndex++;
+    //    queue->Length--;
+    //}
 
     return retval;
 }
@@ -269,14 +344,16 @@ void USB_Parser_Check_Incoming(void)
         //ReceiveSize = usb_gets(1, &usb_parser_receive_queue.buffer[usb_parser_receive_queue.WriteIndex], ReceiveSize, 0); // #Changed - From Previous Implementation #Scrapping - Not useful for our use case. See replacement below.
         
         int ind = 0; // #Changed - Added This after commenting lines above
+        // Adds as much as data from the serial buffer that the queue can take or that is available in the serial buffer
         while(ind < ReceiveSize && serial.readable()) // #Changed - Added This after commenting lines above
         {
-            usb_parser_receive_queue.buffer[usb_parser_receive_queue.WriteIndex + ind] = serial.getc(); // #Changed - Added This after commenting lines above
+            //usb_parser_receive_queue.buffer[usb_parser_receive_queue.WriteIndex + ind] = serial.getc(); // #Changed - Added This after commenting lines above
+            usb_parser_receive_queue.push(serial.getc()); // #Changed - Added This after commenting lines above
             ind++; // #Changed - Added This after commenting lines above
         }
-        ReceiveSize = ind; // #Changed - Added This after commenting lines above
-        usb_parser_receive_queue.Length += ReceiveSize;
-        usb_parser_receive_queue.WriteIndex += ReceiveSize;
+        //ReceiveSize = ind; // #Changed - Added This after commenting lines above // #Commented this block
+        //usb_parser_receive_queue.Length += ReceiveSize;
+        //usb_parser_receive_queue.WriteIndex += ReceiveSize;
     }
 }
 
@@ -286,7 +363,7 @@ void USB_Parser_Check_Outgoing(void)
     //if((usb_parser_transmit_queue.Length != 0) && usb_tbe(1)) // #Changed - Temporarily removed usb_tbe which checks to see if the transmit buffer(Serial buffer) is empty. #Scrapping - can't implement "usb_tbe"
 
     // Data in transmit queue and Bulk Out port buffer is empty?
-    if((usb_parser_transmit_queue.Length != 0)) // #Changed - Added This after commenting lines above. "usb_tbe" looks like the equivalent for serial.writeable which always returns 1
+    if((!usb_parser_transmit_queue.empty())) // #Changed - Added This after commenting lines above. "usb_tbe" looks like the equivalent for serial.writeable which always returns 1
     {
         sendUSBmessage();  // Flush transmit queue to Bulk Out port.
     }
@@ -298,7 +375,7 @@ void USB_Parser_Check_Outgoing(void)
 void USB_Parser_Async_Response(void)
 {
     // Fetch current buffer character and Parse it
-    switch (USB_Parser_Buffer_Get_Char(&usb_parser_async_queue))
+    switch (USB_Parser_Buffer_Get_Char(usb_parser_async_queue))
     {
         case USB_PARSER_ERROR_COMMAND: /* Read Error Data*/
             USB_Parser_Error_Data_Response();
@@ -309,7 +386,7 @@ void USB_Parser_Async_Response(void)
             break;
 
         case USB_PARSER_UVOV_COMMAND: /* Send Over-Voltage and Under-Voltage Conditions for one board */
-            usb_parser_board_num = USB_Parser_Buffer_Get_Char(&usb_parser_async_queue);
+            usb_parser_board_num = USB_Parser_Buffer_Get_Char(usb_parser_async_queue);
             USB_Parser_Board_Vov_Vuv_Response(usb_parser_board_num);
             break;
     }
@@ -501,7 +578,7 @@ void USB_Parser_Board_Mfg_Data_Command(int16 board_num)
     //int8 demo_present_last; // #Scrapping - Commented out indefiniitely  #Changed
 
     int8 buf[sizeof(EEPROM_MFG_DATA_TYPE)];
-    USB_Parser_Buffer_Get(&usb_parser_receive_queue, buf, sizeof(mfg_data));
+    USB_Parser_Buffer_Get(usb_parser_receive_queue, buf, sizeof(mfg_data));
     memcpy(&mfg_data, buf, sizeof(buf));
 
 
@@ -539,8 +616,8 @@ void USB_Parser_Board_Mfg_Data_Reset(int16 board_num)
     char eeprom_key[EEPROM_RESET_KEY_SIZE];
     char system_key[SYSTEM_RESET_KEY_SIZE];
 
-    USB_Parser_Buffer_Get(&usb_parser_receive_queue, eeprom_key, sizeof(eeprom_key));
-    USB_Parser_Buffer_Get(&usb_parser_receive_queue, system_key, sizeof(system_key));
+    USB_Parser_Buffer_Get(usb_parser_receive_queue, eeprom_key, sizeof(eeprom_key));
+    USB_Parser_Buffer_Get(usb_parser_receive_queue, system_key, sizeof(system_key));
 
     //if(Eeprom_Reset(board_num, eeprom_key) == TRUE) // #Scrapping - Commented out indefiniitely  #Changed
     //{
@@ -663,11 +740,11 @@ void USB_Parser_Balancer_Algorithm_Command(int16 board_num)
     // Receives Current commands, converts them to the charge amount (mAs) and then computes how much time to balance each cell for
     for (cell_num = 0; cell_num < DC2100A_NUM_CELLS; cell_num++)
     {
-        // Wait if the command bytes has not completely been placed in the receive queue
-        if (usb_parser_receive_queue.ReadIndex == usb_parser_receive_queue.BufferSize)
-        {
-            NUCLEO_Timer_Delay_ms(10);
-        }
+        //// Wait if the command bytes has not completely been placed in the receive queue
+        //if (usb_parser_receive_queue.ReadIndex == usb_parser_receive_queue.BufferSize)
+        //{
+        //    NUCLEO_Timer_Delay_ms(10);
+        //}
 
 
         if (BITVAL(balanceActions, (int8)cell_num) == 1) // If action is 1, make sure target charge is positive signify to discharge
@@ -1048,16 +1125,20 @@ BOOLEAN sendUSBmessage()
     //if(TRUE == usb_puts(1, &(usb_parser_transmit_queue.buffer[usb_parser_transmit_queue.ReadIndex]),
     //                         usb_parser_transmit_queue.Length, USB_PARSER_SEND_TIMEOUT))
         
+    char bytes[usb_parser_transmit_queue.size()];
+
+    usb_parser_transmit_queue.pop(bytes, usb_parser_transmit_queue.size());
+
     // Send bytes from the buffer
-    if(serial.write(&(usb_parser_transmit_queue.buffer[(int16)(usb_parser_transmit_queue.ReadIndex)]), usb_parser_transmit_queue.Length))
+    if(serial.write(&bytes, usb_parser_transmit_queue.size()))
     {
         if (useUSBTerminator == true)
         {
             serial.printf("\n");
         }
-        usb_parser_transmit_queue.ReadIndex = 0;
-        usb_parser_transmit_queue.WriteIndex = 0;
-        usb_parser_transmit_queue.Length = 0;
+        //usb_parser_transmit_queue.ReadIndex = 0;
+        //usb_parser_transmit_queue.WriteIndex = 0;
+        //usb_parser_transmit_queue.Length = 0;
         retval = TRUE;
     }
     else
@@ -1148,7 +1229,7 @@ int16 getUSBint16_ASCII(void)
     char ascii_buffer[4];  // 4 ASCII characters per int16
     int8 high_byte, low_byte;
 
-    USB_Parser_Buffer_Get(&usb_parser_receive_queue, ascii_buffer, sizeof(ascii_buffer));
+    USB_Parser_Buffer_Get(usb_parser_receive_queue, ascii_buffer, sizeof(ascii_buffer));
 
     high_byte = ASCIItonybble(ascii_buffer[0]) << 4;
     high_byte += ASCIItonybble(ascii_buffer[1]);
@@ -1163,7 +1244,7 @@ int16 getUSBint12_todo_remove(void)
     char ascii_buffer[3];  // 3 ASCII characters per int12
     int8 high_byte, low_byte;
 
-    USB_Parser_Buffer_Get(&usb_parser_receive_queue, ascii_buffer, sizeof(ascii_buffer));
+    USB_Parser_Buffer_Get(usb_parser_receive_queue, ascii_buffer, sizeof(ascii_buffer));
 
     high_byte = ASCIItonybble(ascii_buffer[0]);
     low_byte = ASCIItonybble(ascii_buffer[1]) << 4;
@@ -1177,7 +1258,7 @@ int8 getUSBint8_ASCII(void)
 {
     char ascii_buffer[2];  // 2 ASCII characters per int8
 
-    USB_Parser_Buffer_Get(&usb_parser_receive_queue, ascii_buffer, sizeof(ascii_buffer));
+    USB_Parser_Buffer_Get(usb_parser_receive_queue, ascii_buffer, sizeof(ascii_buffer));
 
     return (ASCIItonybble(ascii_buffer[0]) << 4) + ASCIItonybble(ascii_buffer[1]);
 }
