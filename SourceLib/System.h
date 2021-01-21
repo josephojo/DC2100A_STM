@@ -53,7 +53,7 @@
 
 
 #define STATUS_TASK_RATE             100    // in ms, the rate at which the state is monitored
-#define DETECT_TASK_RATE            1000    // in ms, the rate at which new boards are detected after the init state
+#define DETECT_TASK_RATE            2000    // in ms, the rate at which new boards are detected after the init state
 
 
 // The possible states for the DC2100A firwmare

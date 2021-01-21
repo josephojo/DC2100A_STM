@@ -71,9 +71,8 @@
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 #define USB_PARSER_ASYNC_BUFFER_SIZE  (DC2100A_MAX_BOARDS*2)
 #define USB_PARSER_BUFFER_SIZE        2 * 64 //2 * MaxMessageSize
-#define HELLOSTRING                   "Hello\n"
+#define HELLOSTRING                   "Hello"
 #define USB_PARSER_SEND_TIMEOUT       50                    // in ms
-
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Global Data
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -352,10 +351,10 @@ void USB_Parser_Hello_Response(void)
         USB_Parser_Buffer_Put_Char(HELLOSTRING[i]);
     }
 
-    if (useUSBTerminator == true)
+    /*if (useUSBTerminator == true)
     {
         USB_Parser_Buffer_Put_Char('\n');
-    }
+    }*/
     //serial.printf("%d", res);
 }
 
@@ -580,6 +579,14 @@ void USB_Parser_Board_Cell_Present_Command(int16 board_num)
 {
 
     voltage_cell_present_flags[board_num] = getUSBint16_ASCII();
+    if (voltage_cell_present_flags[board_num] > (1 << LTC3300_NUM_CELLS))
+    {
+        connectedLTC3300s[board_num] = 2;
+    }
+    else
+    {
+        connectedLTC3300s[board_num] = 1;
+    }
 
     return;
 }
@@ -607,12 +614,14 @@ void USB_Parser_Board_Active_Balancer_Command(int16 board_num)
         Balancer_Active_State[board_num][cell_num] = getUSBint16_ASCII();
     }
 
-    //// Send the balance timers for the selected board.
-    //for (cell_num = 0; cell_num < DC2100A_NUM_CELLS; cell_num++)
-    //{
-    //    serial.printf("Cell[%d]\tCommand = %d\tTime = %i\n", cell_num + 1, (int)((Balancer_Active_State[board_num][cell_num] & BALANCER_ACTIVE_STATE_COMMAND_MASK) >> 15), \
-    //        ((int)Balancer_Active_State[board_num][cell_num] & BALANCER_ACTIVE_STATE_TIME_MASK));
-    //}
+    /*
+    // Send the balance timers for the selected board.
+    for (cell_num = 0; cell_num < DC2100A_NUM_CELLS; cell_num++)
+    {
+        serial.printf("Cell[%d]\tCommand = %d\tTime = %i\n", cell_num + 1, (int)((Balancer_Active_State[board_num][cell_num] & BALANCER_ACTIVE_STATE_COMMAND_MASK) >> 15), \
+            ((int)Balancer_Active_State[board_num][cell_num] & BALANCER_ACTIVE_STATE_TIME_MASK));
+    }
+    */
 
     Balancer_Max_and_Nextstop_Find();
 
@@ -645,7 +654,7 @@ void USB_Parser_Board_Active_Balancer_Response(int16 board_num)
 
 void USB_Parser_Balancer_Algorithm_Command(int16 board_num)
 {
-    int8 cell_num;
+    int16 cell_num;
     unsigned int16 balanceActions;
 
     // Receives Current commands, converts them to the charge amount (mAs) and then computes how much time to balance each cell for
@@ -654,7 +663,14 @@ void USB_Parser_Balancer_Algorithm_Command(int16 board_num)
     // Receives Current commands, converts them to the charge amount (mAs) and then computes how much time to balance each cell for
     for (cell_num = 0; cell_num < DC2100A_NUM_CELLS; cell_num++)
     {
-        if (BITVAL(balanceActions, cell_num) == 1) // If action is 1, make sure target charge is positive signify to discharge
+        // Wait if the command bytes has not completely been placed in the receive queue
+        if (usb_parser_receive_queue.ReadIndex == usb_parser_receive_queue.BufferSize)
+        {
+            NUCLEO_Timer_Delay_ms(10);
+        }
+
+
+        if (BITVAL(balanceActions, (int8)cell_num) == 1) // If action is 1, make sure target charge is positive signify to discharge
         {
             Current_Commands[board_num][cell_num] = getUSBint16_ASCII();
         }

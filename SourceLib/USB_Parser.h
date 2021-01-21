@@ -92,7 +92,7 @@ typedef enum
 } USB_PARSER_EEPROM_ITEM_NUM_TYPE;
 
 // String returned for any unrecognized command.
-#define USB_PARSER_DEFAULT_STRING           "Not a recognized command!"
+#define USB_PARSER_DEFAULT_STRING           "Not a recognized command"
 #define USB_PARSER_DEFAULT_STRING_SIZE      (sizeof(USB_PARSER_DEFAULT_STRING) - 1)
 
 // Structure defining queues used by USB Parser

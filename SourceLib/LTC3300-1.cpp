@@ -122,6 +122,7 @@
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Global Data
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+int8 connectedLTC3300s[DC2100A_MAX_BOARDS];
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // Local Data
@@ -144,7 +145,7 @@ BOOLEAN ltc3300_crc_check(int8* ltc3300_data);
 // Initializes the LTC3300-1 code module.
 void LTC3300_Init(void)
 {
-    // No local data needs to be initialized by this code module.
+    memset(connectedLTC3300s, LTC3300_CONFIG_NUM_ICS_PER_ADDRESS, sizeof(connectedLTC3300s));
 }
 
 // Writes the balancer control bits for a number of cells controlled by a chain of LTC3300-1 ICs at a specific logical address.
@@ -216,15 +217,18 @@ BOOLEAN LTC3300_Command_Read(int16 board_num, int8* balancer_command_ptr)
     // Note that last LTC3300 in chain sends its command bytes last, since bytes are
     // passed serially and the highest potential cells must be connected to the last LTC3300 in the series
     ltc3300_data_ptr = ltc3300_data;
+
     //for (int i = 0; i < sizeof(ltc3300_data); i++)
     //{
     //    printf("ltc3300_data[%d] = %d\r\n", i, ltc3300_data[i]);
     //}
     //printf("\n");
+
+    
     for (ltc3300_num = 0; ltc3300_num < LTC3300_CONFIG_NUM_ICS_PER_ADDRESS; ltc3300_num++)
     {
         // Verify data, and extract it if valid.
-        if(ltc3300_crc_check(ltc3300_data_ptr) == TRUE)
+        if( (ltc3300_crc_check(ltc3300_data_ptr) == TRUE) || (ltc3300_num >= connectedLTC3300s[board_num]) ) // 2nd statement prevents the throwing of LTC3300CRC errors when device is not powered
         {
             // Extract balancer command in an endianess independent way.
             balancer_command = (((int16) (*ltc3300_data_ptr)) << 8) + *(ltc3300_data_ptr + 1);
@@ -282,6 +286,7 @@ BOOLEAN LTC3300_Status_Read(int16 board_num, int8* gate_drive_ok, int8* cells_ov
     // passed serially and the highest potential cells must be connected to the last LTC3300 in the series
     ltc3300_data_ptr = ltc3300_data;
 
+
     for (ltc3300_num = 0; ltc3300_num < LTC3300_CONFIG_NUM_ICS_PER_ADDRESS; ltc3300_num++)
     {
         // Verify data, and extract it if valid.
@@ -311,8 +316,13 @@ BOOLEAN LTC3300_Status_Read(int16 board_num, int8* gate_drive_ok, int8* cells_ov
         }
         else
         {
-            LTC3300_CONFIG_ERROR_CRC(board_num, ltc3300_num, LTC3300_COMMAND_STATUS_READ, ltc3300_data_ptr, LTC3300_REGISTER_SIZE);
-            success = FALSE;
+            // #Changed - Using a variable "connectedLTC3300s" that is modified based on the number of cells connected. 
+            // Prevents the throwing of LTC3300CRC errors when device is not powered
+            if (ltc3300_num < connectedLTC3300s[board_num])
+            {
+                LTC3300_CONFIG_ERROR_CRC(board_num, ltc3300_num, LTC3300_COMMAND_STATUS_READ, ltc3300_data_ptr, LTC3300_REGISTER_SIZE);
+                success = FALSE;
+            }
         }
 
         ltc3300_data_ptr += LTC3300_REGISTER_SIZE;
