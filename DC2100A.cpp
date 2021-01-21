@@ -523,7 +523,7 @@ void Task_Parser(void)
         {
         default:                                                /* By default anything not specified is a no-op */
             //printf(USB_Parser_Buffer_Put_Char, USB_PARSER_DEFAULT_STRING);
-            serial.printf(USB_PARSER_DEFAULT_STRING);
+            serial.printf("%s:%c\n", USB_PARSER_DEFAULT_STRING, usb_parser_command);
             break;
 
         case USB_PARSER_HELLO_COMMAND:                          /*  Reply with Hello String.  Mostly useful for testing. */
