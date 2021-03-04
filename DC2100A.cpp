@@ -516,22 +516,27 @@ void Task_Parser(void)
         //serial.printf("In Queue Length : %d!\r\n", usb_parser_receive_queue.Length);
 
         // Get the command to process.
-        usb_parser_command = USB_Parser_Buffer_Get_Char(usb_parser_receive_queue);
+        // Replacing a "get" with a "peek" since if the cmd is taken out of the buffer without the rest of it being available, 
+        // it will ignore that new command
+        usb_parser_receive_queue.peek(usb_parser_command);  
 
         // Parse the command
         switch (usb_parser_command)
         {
         default:                                                /* By default anything not specified is a no-op */
             //printf(USB_Parser_Buffer_Put_Char, USB_PARSER_DEFAULT_STRING);
+            usb_parser_command = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
             serial.printf("%s:%c\n", USB_PARSER_DEFAULT_STRING, usb_parser_command);
             break;
 
         case USB_PARSER_HELLO_COMMAND:                          /*  Reply with Hello String.  Mostly useful for testing. */
+            usb_parser_command = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
             USB_Parser_Hello_Response();
             break;
 
         case USB_PARSER_IDSTRING_COMMAND:                       /*  Read controller ID and firmware rev, this supports legacy functions */
         case USB_PARSER_IDSTRING_COMMAND_2:
+            usb_parser_command = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
             USB_Parser_IDString_Response();
             break;
 
@@ -542,16 +547,20 @@ void Task_Parser(void)
 
         case USB_PARSER_ERROR_COMMAND:                          /* Read Error Data*/
             // Get the board number
+            usb_parser_command = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
             USB_Parser_Error_Data_Response();
             break;
 
         case USB_PARSER_SYSTEM_COMMAND:                         /* Read System Data*/
+            usb_parser_command = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
             USB_Parser_System_Data_Response();
             break;
 
         case USB_PARSER_MFG_COMMAND:                            /* Read/Write Board Manufacturing Data */
              //Get the read/write character and board number
             //rtos_await(usb_parser_receive_queue.Length >= 3); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
+
+            usb_parser_command = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
 
             //Get the read/write character and board number
             incomingData_Mutex.lock(); // Lock incoming data mutex
@@ -560,7 +569,7 @@ void Task_Parser(void)
                 incomingData_CV.wait();
             }
 
-            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(usb_parser_receive_queue);
+            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
             usb_parser_board_num = getUSBint8_ASCII();
 
             incomingData_Mutex.unlock(); // Unlock incoming data mutex
@@ -600,6 +609,7 @@ void Task_Parser(void)
             break;
 
         case USB_PARSER_UVOV_COMMAND:                           /* Read Board Over-Voltage and Under-Voltage Conditions */
+            usb_parser_command = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
             // Get the board number
             //rtos_await(usb_parser_receive_queue.Length >= (sizeof(usb_parser_board_num) * ASCII_PER_BYTE)); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
             incomingData_Mutex.lock(); // Lock incoming data mutex
@@ -614,7 +624,9 @@ void Task_Parser(void)
             break;
 
         case USB_PARSER_VOLTAGE_COMMAND:                        /* Read Board Voltage Data */
-            dc2100a_task_skip.voltage = 1;
+            usb_parser_command = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
+
+            dc2100a_task_skip.voltage = 1; // Prevent an transmit of new data while in this section
             for (usb_parser_board_num = 0; usb_parser_board_num < System_Num_Boards; usb_parser_board_num++)
             {
                 USB_Parser_Board_Voltage_Data_Response(usb_parser_board_num);
@@ -627,7 +639,8 @@ void Task_Parser(void)
             break;
 
         case USB_PARSER_TEMPERATURE_COMMAND:                    /* Read Board Temperature Data */
-            dc2100a_task_skip.temperature = 1;
+            usb_parser_command = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
+            dc2100a_task_skip.temperature = 1; // Prevent an transmit of new data while in this section
             for (usb_parser_board_num = 0; usb_parser_board_num < System_Num_Boards; usb_parser_board_num++)
             {
                 USB_Parser_Board_Temperature_Data_Response(usb_parser_board_num);
@@ -641,6 +654,7 @@ void Task_Parser(void)
             break;
 
         case USB_PARSER_TEMP_ADC_COMMAND:                       /* Read Board Temperature Adc Values */
+            usb_parser_command = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
             // Get the board number
             //rtos_await(usb_parser_receive_queue.Length >= (sizeof(usb_parser_board_num) * ASCII_PER_BYTE));
             incomingData_Mutex.lock(); // Lock incoming data mutex
@@ -656,10 +670,12 @@ void Task_Parser(void)
             break;
 
         case USB_PARSER_PACK_CURRENT_COMMAND:
+            usb_parser_command = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
             USB_Parser_Pack_Current_Data_Response();
             break;
 
         case USB_PARSER_LTC3300_COMMAND:                        /* LTC3300 Raw Write via LTC6804 */
+            usb_parser_command = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
             // Get the read/write character, board number, and number of bytes in command.
             //rtos_await(usb_parser_receive_queue.Length >= 4); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
             incomingData_Mutex.lock(); // Lock incoming data mutex
@@ -667,9 +683,9 @@ void Task_Parser(void)
             {
                 incomingData_CV.wait();
             }
-            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(usb_parser_receive_queue);
+            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
             usb_parser_board_num = getUSBint8_ASCII();
-            usb_parser_num_bytes = ASCIItonybble(USB_Parser_Buffer_Get_Char(usb_parser_receive_queue));
+            usb_parser_num_bytes = ASCIItonybble(USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue));
             incomingData_Mutex.unlock(); // Unlock incoming data mutex
 
 
@@ -702,6 +718,7 @@ void Task_Parser(void)
             break;
 
         case USB_PARSER_TIMED_BALANCE_COMMAND:                  /* Board Timed Balance */
+            usb_parser_command = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
             // Get the usb_parser_subcommand and board number
             // Get the read/write character and board number
             //rtos_await(usb_parser_receive_queue.Length >= 3); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
@@ -710,7 +727,7 @@ void Task_Parser(void)
             {
                 incomingData_CV.wait();
             }
-            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(usb_parser_receive_queue);
+            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
             usb_parser_board_num = getUSBint8_ASCII();
             incomingData_Mutex.unlock(); // Unlock incoming data mutex
 
@@ -750,13 +767,14 @@ void Task_Parser(void)
             break;
 
         case USB_PARSER_PASSIVE_BALANCE_COMMAND:                /* Board Passive Balancers */
+            usb_parser_command = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
             //rtos_await(usb_parser_receive_queue.Length >= 3); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
             incomingData_Mutex.lock(); // Lock incoming data mutex
             while (usb_parser_receive_queue.size() < 3) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
             {
                 incomingData_CV.wait();
             }
-            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(usb_parser_receive_queue);
+            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
             usb_parser_board_num = getUSBint8_ASCII();
             incomingData_Mutex.unlock(); // Unlock incoming data mutex
 
@@ -780,13 +798,14 @@ void Task_Parser(void)
             break;
 
         case USB_PARSER_CELL_PRESENT_COMMAND:                   /* Board Cell Present */
+            usb_parser_command = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
             //rtos_await(usb_parser_receive_queue.Length >= 3); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
             incomingData_Mutex.lock(); // Lock incoming data mutex
             while (usb_parser_receive_queue.size() < 3) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
             {
                 incomingData_CV.wait();
             }
-            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(usb_parser_receive_queue);
+            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
             usb_parser_board_num = getUSBint8_ASCII();
             incomingData_Mutex.unlock(); // Unlock incoming data mutex
 
@@ -809,6 +828,7 @@ void Task_Parser(void)
             break;
 
         case USB_PARSER_EEPROM_COMMAND:                         /* Read/Write/Default EEPROM */
+            usb_parser_command = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
             // Get the read/write/default character, board number, and EEPROM_data_id.
             //rtos_await(usb_parser_receive_queue.Length >= 4); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
             incomingData_Mutex.lock(); // Lock incoming data mutex
@@ -816,9 +836,9 @@ void Task_Parser(void)
             {
                 incomingData_CV.wait();
             }
-            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(usb_parser_receive_queue);
+            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
             usb_parser_board_num = getUSBint8_ASCII();
-            usb_parser_item_num = ASCIItonybble(USB_Parser_Buffer_Get_Char(usb_parser_receive_queue));
+            usb_parser_item_num = ASCIItonybble(USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue));
             incomingData_Mutex.unlock(); // Unlock incoming data mutex
 
 
@@ -855,6 +875,7 @@ void Task_Parser(void)
             break;
 
         case USB_PARSER_UVOV_THRESHOLDS_COMMAND:                /* Over and Under Voltage Thresholds */
+            usb_parser_command = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
             //rtos_await(usb_parser_receive_queue.Length >= (2 * sizeof(int16) * ASCII_PER_BYTE)); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
             incomingData_Mutex.lock(); // Lock incoming data mutex
             while (usb_parser_receive_queue.size() < (2 * sizeof(int16) * ASCII_PER_BYTE)) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
@@ -924,27 +945,34 @@ void Task_Parser(void)
         case USB_PARSER_ALGORITHM_COMMAND:                  /* Timed Balance Incorporating Algorithm */
             // Get the usb_parser_subcommand and board number
             //rtos_await(usb_parser_receive_queue.Length >= 1); // #Changed - Needed an equivalent for rtos_await. Using mutexes and controlvariables
-            incomingData_Mutex.lock(); // Lock incoming data mutex
-            while (usb_parser_receive_queue.size() < 1) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
+
+            if (usb_parser_receive_queue.size() >= 54) // 54 is the number of bytes sent for 12 cells
             {
-                incomingData_CV.wait();
+                usb_parser_command = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue); // Only get the command if the above is true, if not, the command remains
+                incomingData_Mutex.lock(); // Lock incoming data mutex
+                while (usb_parser_receive_queue.size() < 1) // While condition is not true, block current thread with condition variable wait func while another thread works on making the condition true
+                {
+                    incomingData_CV.wait();
+                }
+                usb_parser_subcommand = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
+                incomingData_Mutex.unlock(); // Unlock incoming data mutex
+
+                usb_parser_board_num = DC2100A_NUCLEO_BOARD_NUM;   //  Balance algorithm only implemented for 1 board with 12 cells.
+
+                // Write a balancing sequence for one board.
+                if (usb_parser_subcommand == 'W')
+                {
+                    USB_Parser_Balancer_Algorithm_Command(usb_parser_board_num);
+                }
+
+                // Always send a response, whether it's a read or a write
+                USB_Parser_Board_Active_Balancer_Response(usb_parser_board_num);
             }
-            usb_parser_subcommand = USB_Parser_Buffer_Get_Char(usb_parser_receive_queue);
-            incomingData_Mutex.unlock(); // Unlock incoming data mutex
-
-            usb_parser_board_num = DC2100A_NUCLEO_BOARD_NUM;   //  Balance algorithm only implemented for 1 board with 12 cells.
-
-            // Write a balancing sequence for one board.
-            if (usb_parser_subcommand == 'W')
-            {
-                USB_Parser_Balancer_Algorithm_Command(usb_parser_board_num);
-            }
-
-            // Always send a response, whether it's a read or a write
-            USB_Parser_Board_Active_Balancer_Response(usb_parser_board_num);
+            
             break;
 
         case USB_PARSER_EMERGENCY_STOP_COMMAND:                  /* EMERGENCY STOP COMMAND */
+            usb_parser_command = USB_Parser_Buffer_Get_Char(&usb_parser_receive_queue);
             if (Balancer_Is_Balancing() == true)
             {
                 Balancer_Stop();
