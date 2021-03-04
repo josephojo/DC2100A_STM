@@ -57,7 +57,7 @@ extern DigitalOut LED_COMM_PIN;
 extern BufferedSerial serial;
 
 
-#define USB_TASK_RATE                       50     // in ms, the rate at which the USB bulk pipe traffic is serviced.
+#define USB_TASK_RATE                       30     // in ms, the rate at which the USB bulk pipe traffic is serviced.
 
 // USB Commands defined by “USB Parser” worksheet in the file DC2100A_Design.xlsm.
 #define USB_PARSER_MFG_COMMAND              'O'    // Read/Write Board Manufacturing Data.
@@ -96,7 +96,7 @@ typedef enum
 #define USB_PARSER_DEFAULT_STRING           "Not a recognized command"
 #define USB_PARSER_DEFAULT_STRING_SIZE      (sizeof(USB_PARSER_DEFAULT_STRING) - 1)
 
-#define USB_PARSER_BUFFER_SIZE        2 * 64 //2 * MaxMessageSize
+#define USB_PARSER_BUFFER_SIZE        3 * 64  //2 * MaxMessageSize
 #define USB_PARSER_ASYNC_BUFFER_SIZE  (DC2100A_MAX_BOARDS*2)
 
 // Structure defining queues used by USB Parser
@@ -116,9 +116,9 @@ typedef struct
 
 // Queues used by USB Parser
 // todo - These should be private.  It's pretty gross for main() to need to access them directly.
-extern CircularBuffer<char, USB_PARSER_ASYNC_BUFFER_SIZE, int8> usb_parser_async_queue;      // Queue for USB responses sent asynchronously by the FW.  It operates similarly to the receive queue, that receives command from other code modules instead of the USB.
-extern CircularBuffer<char, USB_PARSER_BUFFER_SIZE, int8> usb_parser_receive_queue;          // Queue for USB commands received from the USB.
-extern CircularBuffer<char, USB_PARSER_BUFFER_SIZE, int8> usb_parser_transmit_queue;         // Queue for USB responses to write to the USB.
+extern CircularBuffer<char, USB_PARSER_ASYNC_BUFFER_SIZE> usb_parser_async_queue;      // Queue for USB responses sent asynchronously by the FW.  It operates similarly to the receive queue, that receives command from other code modules instead of the USB.
+extern CircularBuffer<char, USB_PARSER_BUFFER_SIZE> usb_parser_receive_queue;          // Queue for USB commands received from the USB.
+extern CircularBuffer<char, USB_PARSER_BUFFER_SIZE> usb_parser_transmit_queue;         // Queue for USB responses to write to the USB.
 
 // Storage used to maintain variables while rtos_await() is called.  Note - It seems like these should be maintained already by the RTOS?
 // todo - These should be private.  It's pretty gross for main() to need to access them directly.
@@ -182,17 +182,17 @@ void USB_Parser_IDString_Response(void);
 // todo - These should be private.  It's pretty gross for main() to need to access them directly.
 void USB_Parser_Check_Incoming(void);
 void USB_Parser_Check_Outgoing(void);
-BOOLEAN USB_Parser_Buffer_Put(CircularBuffer<char, USB_PARSER_ASYNC_BUFFER_SIZE, int8> queue, char* data, int8 num_chars);
-BOOLEAN USB_Parser_Buffer_Get(CircularBuffer<char, USB_PARSER_ASYNC_BUFFER_SIZE, int8> queue, char* data, int8 num_chars);
-char USB_Parser_Buffer_Get_Char(CircularBuffer<char, USB_PARSER_ASYNC_BUFFER_SIZE, int8> queue);
-BOOLEAN USB_Parser_Buffer_Put(CircularBuffer<char, USB_PARSER_BUFFER_SIZE, int8> queue, char* data, int8 num_chars);
-BOOLEAN USB_Parser_Buffer_Get(CircularBuffer<char, USB_PARSER_BUFFER_SIZE, int8> queue, char* data, int8 num_chars);
-char USB_Parser_Buffer_Get_Char(CircularBuffer<char, USB_PARSER_BUFFER_SIZE, int8> queue);
+BOOLEAN USB_Parser_Buffer_Put(CircularBuffer<char, USB_PARSER_ASYNC_BUFFER_SIZE>* queue, char* data, int8 num_chars);
+BOOLEAN USB_Parser_Buffer_Get(CircularBuffer<char, USB_PARSER_ASYNC_BUFFER_SIZE>* queue, char* data, int8 num_chars);
+char USB_Parser_Buffer_Get_Char(CircularBuffer<char, USB_PARSER_ASYNC_BUFFER_SIZE>* queue);
+BOOLEAN USB_Parser_Buffer_Put(CircularBuffer<char, USB_PARSER_BUFFER_SIZE>* queue, char* data, int8 num_chars);
+BOOLEAN USB_Parser_Buffer_Get(CircularBuffer<char, USB_PARSER_BUFFER_SIZE>* queue, char* data, int8 num_chars);
+char USB_Parser_Buffer_Get_Char(CircularBuffer<char, USB_PARSER_BUFFER_SIZE>* queue);
 BOOLEAN USB_Parser_Buffer_Put_Char(char character);
-int8 USB_Parser_Buffer_Length_Used(CircularBuffer<char, USB_PARSER_ASYNC_BUFFER_SIZE, int8> queue);
-int8 USB_Parser_Buffer_Length_Remaining(CircularBuffer<char, USB_PARSER_ASYNC_BUFFER_SIZE, int8> queue);
-int8 USB_Parser_Buffer_Length_Used(CircularBuffer<char, USB_PARSER_BUFFER_SIZE, int8> queue);
-int8 USB_Parser_Buffer_Length_Remaining(CircularBuffer<char, USB_PARSER_BUFFER_SIZE, int8> queue);
+int8 USB_Parser_Buffer_Length_Used(CircularBuffer<char, USB_PARSER_ASYNC_BUFFER_SIZE>* queue);
+int8 USB_Parser_Buffer_Length_Remaining(CircularBuffer<char, USB_PARSER_ASYNC_BUFFER_SIZE>* queue);
+int8 USB_Parser_Buffer_Length_Used(CircularBuffer<char, USB_PARSER_BUFFER_SIZE>* queue);
+int8 USB_Parser_Buffer_Length_Remaining(CircularBuffer<char, USB_PARSER_BUFFER_SIZE>* queue);
 
 
 BOOLEAN sendUSBmessage();
