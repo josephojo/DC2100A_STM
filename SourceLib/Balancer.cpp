@@ -755,6 +755,15 @@ void Balancer_Stop(void)
 
     LTC3300_Suspend(LTC6804_BROADCAST);
     balancer_control_state = BALANCER_CONTROL_OFF;
+
+
+    // Also ensure PAssive Balancers are off
+    memset(Balancer_Passive_State, 0, sizeof(Balancer_Passive_State));
+
+    for (board_num = 0; board_num < System_Num_Boards; board_num++)
+    {
+        LTC6804_Dischargers_Set(board_num, Balancer_Passive_State[board_num], 0);
+    }
 }
 
 // Places Balancer Control Task in the BALANCER_CONTROL_SUSPEND state immediately as it's possible there's a catastrophic reason why we
